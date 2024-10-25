@@ -141,17 +141,11 @@ def get_version_components(versionIds, component_overview, seen_components):
             if component_name not in seen_components:
                 seen_components.add(component_name)
 
-                # if component.get('component') is not None:
-                #     print(component.get('component'))
                 component_overview.append({
                     'componentName': component_name,
                     'componentVersionName': component.get('componentVersionName', 'No name found'),
                     'componentDescription': get_component_details(component.get('component'), component_overview)
                 })
-            # if component.get('component') is not None:
-            #     print(component.get('component'))
-                # component_overview.append('component',
-                #                           get_component_details(component.get('component'), component_overview))
         return component_overview
     else:
         return {'status': 'error', 'message': 'Failed to fetch project versions'}

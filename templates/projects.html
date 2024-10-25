@@ -80,7 +80,6 @@
         let selectedName = selectedOption.getAttribute('data-name');
         console.log('Selected project ID:', selectedValue);
         document.getElementById('selectedProjectName').textContent = selectedName;
-        // Make a request to the '/projects/<project_id>' route
         fetch(`/projects/${selectedValue}`)
             .then(response => response.json())
             .then(data => {
@@ -110,10 +109,10 @@
             componentDescription.textContent = item.componentDescription;
             supportStatusTextArea.value = item.supportStatus || '';
 
-            supportStatus.appendChild(supportStatusTextArea);
             row.appendChild(componentName);
             row.appendChild(componentVersion);
             row.appendChild(componentDescription);
+            row.appendChild(supportStatusTextArea);
 
             tableBody.appendChild(row);
         });

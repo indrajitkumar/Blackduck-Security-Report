@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Black Duck Projects</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<h1>Black Duck Projects</h1>
+<form id="projectForm">
+    <label for="projects">Select a project:</label>
+    <select id="projects" name="projects" onchange="getSelectedProject()">
+        {% for project in projects %}
+            <option value="{{ project._meta.href.split('/')[-1] }}"
+                    data-name="{{ project.name }}">{{ project.name }}</option>
+        {% endfor %}
+    </select>
+</form>
+<h2 id="selectedProjectName">Select a project to see its name here</h2>
+<div class="tab-buttons">
+    <button type="button" onclick="showTab('tab1')">Title Page</button>
+    <button type="button" onclick="showTab('tab2')">Component overview</button>
+    <button type="button" onclick="showTab('tab3')">Analysis</button>
+    <button type="button" onclick="showTab('tab4')">Document revision history</button>
+    <button type="button" onclick="showTab('tab5')">Abbreviations</button>
+    <button type="button" onclick="showTab('tab6')">References</button>
+</div>
+<div id="tab1" class="tab active">
+    <h2>Title Page</h2>
+    <p>Content for Tab 1 goes here.</p>
+</div>
+<div id="tab2" class="tab">
+    <h2>Component Overview</h2>
+    <table id="projectDataTable">
+        <thead>
+        <tr>
+            <th>Component name</th>
+            <th>Component version</th>
+            <th>Description</th>
+            <th>Support Status</th>
+        </tr>
+        </thead>
+        <tbody>
+        <!-- Data will be populated here -->
+        </tbody>
+    </table>
+</div>
+<div id="tab3" class="tab">
+    <h2>Analysis</h2>
+    <p>Content for Tab 3 goes here.</p>
+</div>
+<div id="tab4" class="tab">
+    <h2>Document Revision History</h2>
+    <p>Content for Tab 4 goes here.</p>
+</div>
+<div id="tab5" class="tab">
+    <h2>Terminology & Abbreviations</h2>
+    <p>Content for Tab 5 goes here.</p>
+</div>
+<div id="tab6" class="tab">
+    <h2>References</h2>
+    <p>Content for Tab 6 goes here.</p>
+</div>
+<a href="{{ url_for('home') }}">Go back to login</a>
+
+<script>
+    function showTab(tabId) {
+        let tabs = document.querySelectorAll('.tab');
+        tabs.forEach(function (tab) {
+            tab.classList.remove('active');
+        });
+        document.getElementById(tabId).classList.add('active');
+    }
+
+    function getSelectedProject() {
+        let select = document.getElementById('projects');
+        let selectedOption = select.options[select.selectedIndex];
+        let selectedValue = selectedOption.value;
+        let selectedName = selectedOption.getAttribute('data-name');
+        console.log('Selected project ID:', selectedValue);
+        document.getElementById('selectedProjectName').textContent = selectedName;
+        // Make a request to the '/projects/<project_id>' route
+        fetch(`/projects/${selectedValue}`)
+            .then(response => response.json())
+            .then(data => {
+                console.log('Project data:', data);
+                // Handle the response data as needed
+                populateTable(data.data);
+            })
+            .catch(error => {
+                console.error('Error fetching project data:', error);
+            });
+    }
+
+    function populateTable(data) {
+        let tableBody = document.querySelector('#projectDataTable tbody');
+        tableBody.innerHTML = ''; // Clear existing data
+
+        data.forEach(item => {
+            let row = document.createElement('tr');
+            let componentName = document.createElement('td');
+            let componentVersion = document.createElement('td');
+            let componentDescription = document.createElement('td');
+            let supportStatus = document.createElement('td');
+            let supportStatusTextArea = document.createElement('textarea');
+
+            componentName.textContent = item.componentName;
+            componentVersion.textContent = item.componentVersionName;
+            componentDescription.textContent = item.componentDescription;
+            supportStatusTextArea.value = item.supportStatus || '';
+
+            supportStatus.appendChild(supportStatusTextArea);
+            row.appendChild(componentName);
+            row.appendChild(componentVersion);
+            row.appendChild(componentDescription);
+
+            tableBody.appendChild(row);
+        });
+    }
+</script>
+</body>
+</html>

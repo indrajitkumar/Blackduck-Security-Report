@@ -138,19 +138,21 @@ def get_version_components(versionIds, component_overview, seen_components):
         filtered_components = response.json().get('items', [])
         for component in filtered_components:
             component_name = component.get('componentName', 'No name found')
+
             if component_name not in seen_components:
                 seen_components.add(component_name)
-
                 component_overview.append({
                     'componentName': component_name,
                     'componentVersionName': component.get('componentVersionName', 'No name found'),
-                    'componentDescription': get_component_details(component.get('component'), component_overview)
+                    'componentDescription': get_component_details(component.get('component')),
+                    'componentVersion': get_component_version_details(component.get('componentVersion'))
                 })
+
         return component_overview
     else:
         return {'status': 'error', 'message': 'Failed to fetch project versions'}
 
-def get_component_details(param, component_overview):
+def get_component_details(param):
     bearer_token = session.get('bearerToken')
     if not bearer_token:
         flash("You need to authenticate first.")
@@ -172,6 +174,42 @@ def get_component_details(param, component_overview):
         description = response.json().get('description', [])
         print(description)
         return description
+    else:
+        return {'status': 'error', 'message': 'Failed to fetch project versions'}
+
+def get_component_version_details(param):
+    vulnerabilities = '/vulnerabilities?limit=100&offset=0&sort=overallScore%20DESC'
+    bearer_token = session.get('bearerToken')
+    if not bearer_token:
+        flash("You need to authenticate first.")
+        return redirect(url_for('home'))
+
+    # Black Duck API endpoint to get project versions
+    url = f"{param}{vulnerabilities}"
+
+    # Set up headers for the API request
+    headers = {
+        "Authorization": f"Bearer {bearer_token}",
+        "Accept": "application/json"
+    }
+    vulnerabilities = []
+    # Make the request to the Black Duck API to fetch project versions
+    response = requests.get(url, headers=headers)
+    # Check if the request was successful
+    if response.status_code == 200:
+        component_version_details = response.json()
+        if component_version_details.get('totalCount', 0) > 0:
+            for component_version_details in component_version_details.get('items', []):
+                vulnerabilities.append({
+                    'vulnerabilityUpdatedDate': component_version_details.get('publishedDate', 'No date found'),
+                    'vulnerabilityName': component_version_details.get('name', 'No name found'),
+                    'description': component_version_details.get('description', 'No description found'),
+                    'baseScore': component_version_details.get('cvss3',{}).get('baseScore', 'No score found'),
+                    'impactSubscore': component_version_details.get('cvss3',{}).get('impactSubscore', 'No score found'),
+                    'exploitabilitySubscore': component_version_details.get('cvss3',{}).get('exploitabilitySubscore', 'No score found'),
+                    'severity': component_version_details.get('severity', 'No severity found')
+                })
+        return vulnerabilities
     else:
         return {'status': 'error', 'message': 'Failed to fetch project versions'}
 

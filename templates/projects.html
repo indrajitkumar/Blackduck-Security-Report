@@ -48,7 +48,28 @@
 </div>
 <div id="tab3" class="tab">
     <h2>Analysis</h2>
-    <p>Content for Tab 3 goes here.</p>
+    <table id="projectDataTable1">
+        <thead>
+        <tr>
+            <th>Review date (YYYY-MM-DD)</th>
+            <th>Component name</th>
+            <th>Component version</th>
+            <th>Vulnerability ID (e.g. CVE)</th>
+            <th>Description</th>
+            <th>Base score</th>
+            <th>Exploitability</th>
+            <th>Impact</th>
+            <th>Remediation status</th>
+            <th>Remediation comment</th>
+            <th>Severity rating</th>
+            <th>Update PSSD?</th>
+            <th>Manage Defect requested?</th>
+        </tr>
+        </thead>
+        <tbody>
+        <!-- Data will be populated here -->
+        </tbody>
+    </table>
 </div>
 <div id="tab4" class="tab">
     <h2>Document Revision History</h2>
@@ -92,31 +113,80 @@
             });
     }
 
-    function populateTable(data) {
-        let tableBody = document.querySelector('#projectDataTable tbody');
-        tableBody.innerHTML = ''; // Clear existing data
+   function populateTable(data) {
+    let tableBody = document.querySelector('#projectDataTable tbody');
+    tableBody.innerHTML = ''; // Clear existing data
+    data.forEach(item => {
+        let row = document.createElement('tr');
+        let componentName = document.createElement('td');
+        let componentVersion = document.createElement('td');
+        let componentDescription = document.createElement('td');
+        let supportStatus = document.createElement('td');
+        let supportStatusTextArea = document.createElement('textarea');
 
-        data.forEach(item => {
-            let row = document.createElement('tr');
+        componentName.textContent = item.componentName;
+        componentVersion.textContent = item.componentVersionName;
+        componentDescription.textContent = item.componentDescription;
+        supportStatusTextArea.value = item.supportStatus || '';
+
+        supportStatus.appendChild(supportStatusTextArea);
+        row.appendChild(componentName);
+        row.appendChild(componentVersion);
+        row.appendChild(componentDescription);
+        row.appendChild(supportStatus);
+
+        tableBody.appendChild(row);
+
+        let tableBody1 = document.querySelector('#projectDataTable1 tbody');
+        item.componentVersion.forEach(version => {
+            let vulnerabilityUpdatedDate = document.createElement('td');
             let componentName = document.createElement('td');
             let componentVersion = document.createElement('td');
-            let componentDescription = document.createElement('td');
-            let supportStatus = document.createElement('td');
-            let supportStatusTextArea = document.createElement('textarea');
+            let vulnerabilityName = document.createElement('td');
+            let vulnerabilityDec = document.createElement('td');
+            let baseScore = document.createElement('td');
+            let exploitability = document.createElement('td');
+            let impact = document.createElement('td');
+            let remediationStatus = document.createElement('td');
+            let remediationComment = document.createElement('textarea');
+            let severityRating = document.createElement('td');
+            let updatePSSD = document.createElement('td');
+            let manageDefect = document.createElement('td');
 
+            vulnerabilityUpdatedDate.textContent = version.vulnerabilityUpdatedDate;
             componentName.textContent = item.componentName;
             componentVersion.textContent = item.componentVersionName;
-            componentDescription.textContent = item.componentDescription;
-            supportStatusTextArea.value = item.supportStatus || '';
+            vulnerabilityName.textContent = version.vulnerabilityName;
+            vulnerabilityDec.textContent = version.description;
+            baseScore.textContent = version.baseScore;
+            exploitability.textContent = version.exploitabilitySubscore;
+            impact.textContent = version.impactSubscore;
+            remediationStatus.value = version.remediationStatus;
+            remediationComment.value = version.remediationComment || '';
+            severityRating.textContent = version.severity;
+            updatePSSD.textContent = "No";
+            manageDefect.textContent = "No";
+            console.log('Version', version.vulnerabilityName);
 
+            let row = document.createElement('tr');
+            row.appendChild(vulnerabilityUpdatedDate);
             row.appendChild(componentName);
             row.appendChild(componentVersion);
-            row.appendChild(componentDescription);
-            row.appendChild(supportStatusTextArea);
+            row.appendChild(vulnerabilityName);
+            row.appendChild(vulnerabilityDec);
+            row.appendChild(baseScore);
+            row.appendChild(exploitability);
+            row.appendChild(impact);
+            row.appendChild(remediationStatus);
+            row.appendChild(remediationComment);
+            row.appendChild(severityRating);
+            row.appendChild(updatePSSD);
+            row.appendChild(manageDefect);
 
-            tableBody.appendChild(row);
+            tableBody1.appendChild(row);
         });
-    }
+    });
+}
 </script>
 </body>
 </html>

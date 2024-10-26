@@ -200,15 +200,16 @@ def get_component_version_details(param):
         component_version_details = response.json()
         if component_version_details.get('totalCount', 0) > 0:
             for component_version_details in component_version_details.get('items', []):
-                vulnerabilities.append({
-                    'vulnerabilityUpdatedDate': component_version_details.get('publishedDate', 'No date found'),
-                    'vulnerabilityName': component_version_details.get('name', 'No name found'),
-                    'description': component_version_details.get('description', 'No description found'),
-                    'baseScore': component_version_details.get('cvss3',{}).get('baseScore', 'No score found'),
-                    'impactSubscore': component_version_details.get('cvss3',{}).get('impactSubscore', 'No score found'),
-                    'exploitabilitySubscore': component_version_details.get('cvss3',{}).get('exploitabilitySubscore', 'No score found'),
-                    'severity': component_version_details.get('severity', 'No severity found')
-                })
+                if component_version_details.get('severity', 'No severity found') in ['HIGH', 'MEDIUM']:
+                    vulnerabilities.append({
+                        'vulnerabilityUpdatedDate': component_version_details.get('publishedDate', 'No date found'),
+                        'vulnerabilityName': component_version_details.get('name', 'No name found'),
+                        'description': component_version_details.get('description', 'No description found'),
+                        'baseScore': component_version_details.get('cvss3',{}).get('baseScore', 'No score found'),
+                        'impactSubscore': component_version_details.get('cvss3',{}).get('impactSubscore', 'No score found'),
+                        'exploitabilitySubscore': component_version_details.get('cvss3',{}).get('exploitabilitySubscore', 'No score found'),
+                        'severity': component_version_details.get('severity', 'No severity found')
+                    })
         return vulnerabilities
     else:
         return {'status': 'error', 'message': 'Failed to fetch project versions'}

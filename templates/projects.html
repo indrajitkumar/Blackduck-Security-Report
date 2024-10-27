@@ -84,6 +84,7 @@
     <p>Content for Tab 6 goes here.</p>
 </div>
 <a href="{{ url_for('home') }}">Go back to login</a>
+<button type="button" onclick="generateExcelReport()">Generate Excel Report</button>
 
 <script>
     function showTab(tabId) {
@@ -187,6 +188,31 @@
         });
     });
 }
+
+function generateExcelReport() {
+    let selectedProjectId = document.getElementById('projects').value;
+    fetch(`/generate_excel_report/${selectedProjectId}`)
+        .then(response => {
+            if (response.ok) {
+                return response.blob();
+            } else {
+                throw new Error('Failed to generate Excel report');
+            }
+        })
+        .then(blob => {
+            let url = window.URL.createObjectURL(blob);
+            let a = document.createElement('a');
+            a.href = url;
+            a.download = 'component_overview.xlsx';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+}
+
 </script>
 </body>
 </html>

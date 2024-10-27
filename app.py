@@ -3,6 +3,7 @@ import requests
 import pandas as pd
 import os
 
+
 # Create Flask app instance
 app = Flask(__name__)
 app.secret_key = "supersecretkey"  # Used for flashing messages
@@ -180,16 +181,26 @@ def generate_excel_report(project_id):
     else:
         return {'status': 'error', 'message': 'Failed to fetch project versions'}
 
+
 def save_to_excel(component_overview, file_path='component_overview.xlsx'):
-    with pd.ExcelWriter(file_path) as writer:
+    with pd.ExcelWriter(file_path, engine='xlsxwriter') as writer:
+        workbook = writer.book
+        wrap_format = workbook.add_format({'text_wrap': True})
+
         # Title Page
         title_page_df = pd.DataFrame([{'Title': 'Black Duck Projects Report'}])
         title_page_df.to_excel(writer, sheet_name='Title Page', index=False)
+        worksheet = writer.sheets['Title Page']
+        for col_num, col in enumerate(title_page_df.columns):
+            worksheet.set_column(col_num, col_num, 20, wrap_format)
 
         # Component Overview
         component_overview_df = pd.DataFrame(
             [{k: v for k, v in item.items() if k != 'componentVersion'} for item in component_overview])
         component_overview_df.to_excel(writer, sheet_name='Component Overview', index=False)
+        worksheet = writer.sheets['Component Overview']
+        # for col_num, col in enumerate(component_overview_df.columns):
+        worksheet.set_column(col_num, col_num, 30, wrap_format)
 
         # Analysis
         analysis_data = []
@@ -212,18 +223,31 @@ def save_to_excel(component_overview, file_path='component_overview.xlsx'):
                 })
         analysis_df = pd.DataFrame(analysis_data)
         analysis_df.to_excel(writer, sheet_name='Analysis', index=False)
+        worksheet = writer.sheets['Analysis']
+        for col_num, col in enumerate(analysis_df.columns):
+            worksheet.set_column(col_num, col_num, 30, wrap_format)
 
         # Document Revision History
         revision_history_df = pd.DataFrame([{'Revision': '1.0', 'Date': '2023-10-01', 'Description': 'Initial version'}])
         revision_history_df.to_excel(writer, sheet_name='Document Revision History', index=False)
+        worksheet = writer.sheets['Document Revision History']
+        for col_num, col in enumerate(revision_history_df.columns):
+            worksheet.set_column(col_num, col_num, 20, wrap_format)
 
         # Terminology & Abbreviations
         abbreviations_df = pd.DataFrame([{'Term': 'PSSD', 'Definition': 'Product Security Software Development'}])
         abbreviations_df.to_excel(writer, sheet_name='Terminology & Abbreviations', index=False)
+        worksheet = writer.sheets['Terminology & Abbreviations']
+        for col_num, col in enumerate(abbreviations_df.columns):
+            worksheet.set_column(col_num, col_num, 20, wrap_format)
 
         # References
         references_df = pd.DataFrame([{'Reference': 'Black Duck API Documentation', 'Link': 'https://blackducksoftware.github.io/'}])
         references_df.to_excel(writer, sheet_name='References', index=False)
+        worksheet = writer.sheets['References']
+        for col_num, col in enumerate(references_df.columns):
+            worksheet.set_column(col_num, col_num, 20, wrap_format)
+
 
 if __name__ == '__main__':
     app.run(debug=True)

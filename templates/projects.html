@@ -27,8 +27,22 @@
     <button type="button" onclick="showTab('tab6')">References</button>
 </div>
 <div id="tab1" class="tab active">
-    <h2>Title Page</h2>
-    <p>Content for Tab 1 goes here.</p>
+    <h2>Purpose</h2>
+    <p>"This document is used to report the product security analysis of vulnerabilities in software and hardware
+        elements and parts (components), which are used in HSCS for DataCore Release 4.6.0.0. This report is established
+        during design to capture remaining vulnerabilities. As new security issues including vulnerabilities are
+        continuously identified in software and hardware components, this report must be maintained during the entire
+        lifecycle until End-of-Support, as part of post market obligations for both medical as well as non-medical
+        products.
+        This document demonstrates the continuous analysis of security issues and new vulnerabilities and serves as a
+        trigger for follow-up actions and as an input into the higher-level product security risk assessment to further
+        assess specific vulnerabilities and/or a set of aggregated vulnerabilities within specific components.
+        This report uses the Software bill of materials (SBOM) document [REF-1] as one of its inputs. It captures the
+        product-related vulnerability information, which originates from many sources such as information supplied by
+        third party sources." </p>
+
+    <h2>Scope</h2>
+    <p>"This document is applicable to all software and hardware components used in HSCS for DataCore Release 4.6.0.0
 </div>
 <div id="tab2" class="tab">
     <h2>Component Overview</h2>
@@ -83,8 +97,14 @@
     <h2>References</h2>
     <p>Content for Tab 6 goes here.</p>
 </div>
-<a href="{{ url_for('home') }}">Go back to login</a>
-<button type="button" onclick="generateExcelReport()">Generate Excel Report</button>
+
+<div class="button-container">
+    <button type="button" onclick="generateExcelReport()">Generate Excel Report</button>
+</div>
+
+<div class="footer">
+    <p>&copy; 2024 PHDSI - HSCS. All rights reserved.</p>
+</div>
 
 <script>
     function showTab(tabId) {
@@ -114,104 +134,114 @@
             });
     }
 
-   function populateTable(data) {
-    let tableBody = document.querySelector('#projectDataTable tbody');
-    tableBody.innerHTML = ''; // Clear existing data
-    data.forEach(item => {
-        let row = document.createElement('tr');
-        let componentName = document.createElement('td');
-        let componentVersion = document.createElement('td');
-        let componentDescription = document.createElement('td');
-        let supportStatus = document.createElement('td');
-        let supportStatusTextArea = document.createElement('textarea');
-
-        componentName.textContent = item.componentName;
-        componentVersion.textContent = item.componentVersionName;
-        componentDescription.textContent = item.componentDescription;
-        supportStatusTextArea.value = item.supportStatus || '';
-
-        supportStatus.appendChild(supportStatusTextArea);
-        row.appendChild(componentName);
-        row.appendChild(componentVersion);
-        row.appendChild(componentDescription);
-        row.appendChild(supportStatus);
-
-        tableBody.appendChild(row);
-
-        let tableBody1 = document.querySelector('#projectDataTable1 tbody');
-        item.componentVersion.forEach(version => {
-            let vulnerabilityUpdatedDate = document.createElement('td');
+    function populateTable(data) {
+        let tableBody = document.querySelector('#projectDataTable tbody');
+        tableBody.innerHTML = ''; // Clear existing data
+        data.forEach(item => {
+            let row = document.createElement('tr');
             let componentName = document.createElement('td');
             let componentVersion = document.createElement('td');
-            let vulnerabilityName = document.createElement('td');
-            let vulnerabilityDec = document.createElement('td');
-            let baseScore = document.createElement('td');
-            let exploitability = document.createElement('td');
-            let impact = document.createElement('td');
-            let remediationStatus = document.createElement('td');
-            let remediationComment = document.createElement('textarea');
-            let severityRating = document.createElement('td');
-            let updatePSSD = document.createElement('td');
-            let manageDefect = document.createElement('td');
+            let componentDescription = document.createElement('td');
+            let supportStatus = document.createElement('td');
+            let supportStatusTextArea = document.createElement('textarea');
 
-            vulnerabilityUpdatedDate.textContent = version.vulnerabilityUpdatedDate;
             componentName.textContent = item.componentName;
             componentVersion.textContent = item.componentVersionName;
-            vulnerabilityName.textContent = version.vulnerabilityName;
-            vulnerabilityDec.textContent = version.description;
-            baseScore.textContent = version.baseScore;
-            exploitability.textContent = version.exploitabilitySubscore;
-            impact.textContent = version.impactSubscore;
-            remediationStatus.value = version.remediationStatus;
-            remediationComment.value = version.remediationComment || '';
-            severityRating.textContent = version.severity;
-            updatePSSD.textContent = "No";
-            manageDefect.textContent = "No";
-            console.log('Version', version.vulnerabilityName);
+            componentDescription.textContent = item.componentDescription;
+            supportStatusTextArea.value = item.supportStatus || '';
 
-            let row = document.createElement('tr');
-            row.appendChild(vulnerabilityUpdatedDate);
+            supportStatus.appendChild(supportStatusTextArea);
             row.appendChild(componentName);
             row.appendChild(componentVersion);
-            row.appendChild(vulnerabilityName);
-            row.appendChild(vulnerabilityDec);
-            row.appendChild(baseScore);
-            row.appendChild(exploitability);
-            row.appendChild(impact);
-            row.appendChild(remediationStatus);
-            row.appendChild(remediationComment);
-            row.appendChild(severityRating);
-            row.appendChild(updatePSSD);
-            row.appendChild(manageDefect);
+            row.appendChild(componentDescription);
+            row.appendChild(supportStatus);
 
-            tableBody1.appendChild(row);
-        });
-    });
-}
+            tableBody.appendChild(row);
 
-function generateExcelReport() {
-    let selectedProjectId = document.getElementById('projects').value;
-    fetch(`/generate_excel_report/${selectedProjectId}`)
-        .then(response => {
-            if (response.ok) {
-                return response.blob();
-            } else {
-                throw new Error('Failed to generate Excel report');
-            }
-        })
-        .then(blob => {
-            let url = window.URL.createObjectURL(blob);
-            let a = document.createElement('a');
-            a.href = url;
-            a.download = 'component_overview.xlsx';
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-        })
-        .catch(error => {
-            console.error('Error:', error);
+            let tableBody1 = document.querySelector('#projectDataTable1 tbody');
+            item.componentVersion.forEach(version => {
+                let vulnerabilityUpdatedDate = document.createElement('td');
+                let componentName = document.createElement('td');
+                let componentVersion = document.createElement('td');
+                let vulnerabilityName = document.createElement('td');
+                let vulnerabilityDec = document.createElement('td');
+                let baseScore = document.createElement('td');
+                let exploitability = document.createElement('td');
+                let impact = document.createElement('td');
+                let remediationStatus = document.createElement('td');
+                let remediationComment = document.createElement('textarea');
+                let severityRating = document.createElement('td');
+                let updatePSSD = document.createElement('td');
+                let manageDefect = document.createElement('td');
+
+                vulnerabilityUpdatedDate.textContent = version.vulnerabilityUpdatedDate;
+                componentName.textContent = item.componentName;
+                componentVersion.textContent = item.componentVersionName;
+                vulnerabilityName.textContent = version.vulnerabilityName;
+                vulnerabilityDec.textContent = version.description;
+                baseScore.textContent = version.baseScore;
+                exploitability.textContent = version.exploitabilitySubscore;
+                impact.textContent = version.impactSubscore;
+                remediationStatus.value = version.remediationStatus;
+                remediationComment.value = version.remediationComment || '';
+                severityRating.textContent = version.severity;
+                updatePSSD.textContent = "No";
+                manageDefect.textContent = "No";
+                console.log('Version', version.vulnerabilityName);
+
+                let row = document.createElement('tr');
+                row.appendChild(vulnerabilityUpdatedDate);
+                row.appendChild(componentName);
+                row.appendChild(componentVersion);
+                row.appendChild(vulnerabilityName);
+                row.appendChild(vulnerabilityDec);
+                row.appendChild(baseScore);
+                row.appendChild(exploitability);
+                row.appendChild(impact);
+                row.appendChild(remediationStatus);
+                row.appendChild(remediationComment);
+                row.appendChild(severityRating);
+                row.appendChild(updatePSSD);
+                row.appendChild(manageDefect);
+
+                tableBody1.appendChild(row);
+            });
         });
-}
+    }
+
+    function generateExcelReport() {
+        let button = document.querySelector('button[onclick="generateExcelReport()"]');
+        button.classList.add('animate-click');
+        button.disabled = true;
+
+        let selectedProjectId = document.getElementById('projects').value;
+        fetch(`/generate_excel_report/${selectedProjectId}`)
+            .then(response => {
+                if (response.ok) {
+                    return response.blob();
+                } else {
+                    throw new Error('Failed to generate Excel report');
+                }
+            })
+            .then(blob => {
+                let url = window.URL.createObjectURL(blob);
+                let a = document.createElement('a');
+                a.href = url;
+                a.download = 'component_overview.xlsx';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            })
+            .finally(() => {
+                setTimeout(() => {
+                    button.classList.remove('animate-click');
+                    button.disabled = false;
+                }, 300);
+            });
+    }
 
 </script>
 </body>

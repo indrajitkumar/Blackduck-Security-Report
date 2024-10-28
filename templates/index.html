@@ -7,21 +7,41 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <h1>Login to Black Duck</h1>
-    <form action="{{ url_for('authenticate') }}" method="POST">
-        <label for="api_token">API Token:</label>
-        <input type="text" id="api_token" name="api_token" required>
-        <button type="submit">Login</button>
-    </form>
+<main>
+    <div class="login-container">
+        <h1>Login to Black Duck Report Generator</h1>
+        <form action="{{ url_for('authenticate') }}" method="POST" onsubmit="showLoader()">
+            <img src="https://blackduck.philips.com/static/images/b6d9c4bd.svg" alt="Black Duck Logo"
+                 style="width: 200px; height: auto; margin-bottom: 20px;">
+            <label for="api_token">Blackduck API Token:</label>
+            <input type="text" id="api_token" name="api_token" required maxlength="200">
+            <button type="submit">Login</button>
 
-    {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        <ul>
-        {% for message in messages %}
-          <li>{{ message }}</li>
-        {% endfor %}
-        </ul>
-      {% endif %}
-    {% endwith %}
+            <p style="margin-top: 20px;">* For more information, visit <a href="https://blackduck.philips.com/" target="_blank">Blackduck</a>.
+            </p>
+
+
+        </form>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <ul>
+                    {% for message in messages %}
+                        <li>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+    </div>
+    <div class="loader" id="loader"></div>
+</main>
+<div class="footer">
+    <p>&copy; 2024 PHDSI - HSCS. All rights reserved.</p>
+</div>
+<script>
+    function showLoader() {
+        document.getElementById('loader').style.display = 'block';
+    }
+</script>
 </body>
 </html>

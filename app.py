@@ -196,8 +196,7 @@ def generate_excel_report(project_id):
 def save_to_excel(component_overview, file_path='component_overview.xlsx', tab1_content=[]):
     with pd.ExcelWriter(file_path, engine='xlsxwriter') as writer:
         workbook = writer.book
-        wrap_format = workbook.add_format({'text_wrap': True})
-        justify_format = workbook.add_format({'text_wrap': True, 'align': 'justify'})
+        wrap_format = workbook.add_format({'text_wrap': True, 'align': 'justify', 'valign': 'top'})
 
         # Title Page
         title_page_data = []

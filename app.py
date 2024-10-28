@@ -1,4 +1,5 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session, send_file
+from flask import Flask, render_template, request, redirect, url_for, flash, session, send_file, jsonify
+from bs4 import BeautifulSoup
 import requests
 import pandas as pd
 import os
@@ -150,7 +151,7 @@ def get_component_version_details(param):
         return vulnerabilities
     else:
         return {'status': 'error', 'message': 'Failed to fetch project versions'}
-@app.route('/generate_excel_report/<project_id>')
+@app.route('/generate_excel_report/<project_id>', methods=['POST'])
 def generate_excel_report(project_id):
     bearer_token = session.get('bearerToken')
     if not bearer_token:
@@ -170,37 +171,52 @@ def generate_excel_report(project_id):
             version_href = version['_meta']['href']
             component_overview = get_version_components(version_href, component_overview, seen_components)
 
+        # Extract and parse content from tab1
+        tab1_content = request.json.get('tab1Content', '')
+        soup = BeautifulSoup(tab1_content, 'html.parser')
+        parsed_tab1_content = []
+        for section in soup.find_all(['h2', 'p']):
+            parsed_tab1_content.append({
+                'Tag': section.name,
+                'Content': section.get_text(strip=True)
+            })
+
         # Ensure the download directory exists
         download_dir = 'download'
         if not os.path.exists(download_dir):
             os.makedirs(download_dir)
 
         file_path = os.path.join(download_dir, 'component_overview.xlsx')
-        save_to_excel(component_overview, file_path)
+        save_to_excel(component_overview, file_path, parsed_tab1_content)
         return send_file(file_path, as_attachment=True)
     else:
         return {'status': 'error', 'message': 'Failed to fetch project versions'}
 
 
-def save_to_excel(component_overview, file_path='component_overview.xlsx'):
+def save_to_excel(component_overview, file_path='component_overview.xlsx', tab1_content=[]):
     with pd.ExcelWriter(file_path, engine='xlsxwriter') as writer:
         workbook = writer.book
         wrap_format = workbook.add_format({'text_wrap': True})
+        justify_format = workbook.add_format({'text_wrap': True, 'align': 'justify'})
 
         # Title Page
-        title_page_df = pd.DataFrame([{'Title': 'Black Duck Projects Report'}])
+        title_page_data = []
+        for item in tab1_content:
+            title_page_data.append(item['Content'])
+
+        title_page_df = pd.DataFrame(title_page_data, columns=['Purpose'])
         title_page_df.to_excel(writer, sheet_name='Title Page', index=False)
         worksheet = writer.sheets['Title Page']
         for col_num, col in enumerate(title_page_df.columns):
-            worksheet.set_column(col_num, col_num, 20, wrap_format)
+            worksheet.set_column(col_num, col_num, 150, wrap_format)
 
         # Component Overview
         component_overview_df = pd.DataFrame(
             [{k: v for k, v in item.items() if k != 'componentVersion'} for item in component_overview])
         component_overview_df.to_excel(writer, sheet_name='Component Overview', index=False)
         worksheet = writer.sheets['Component Overview']
-        # for col_num, col in enumerate(component_overview_df.columns):
-        worksheet.set_column(col_num, col_num, 30, wrap_format)
+        for col_num, col in enumerate(component_overview_df.columns):
+            worksheet.set_column(col_num, col_num, 30, wrap_format)
 
         # Analysis
         analysis_data = []

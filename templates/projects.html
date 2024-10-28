@@ -262,6 +262,18 @@
         document.getElementById('placeholder1').textContent = newData;
 
     }
+
+    document.addEventListener('DOMContentLoaded', (event) => {
+        let buttons = document.querySelectorAll('button');
+        buttons.forEach(button => {
+            button.addEventListener('click', () => {
+                button.classList.add('animate-click');
+                setTimeout(() => {
+                    button.classList.remove('animate-click');
+                }, 300);
+            });
+        });
+    });
 </script>
 </body>
 </html>

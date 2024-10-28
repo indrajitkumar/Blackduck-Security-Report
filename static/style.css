@@ -141,6 +141,17 @@ a:hover {
     border-radius: 4px;
 }
 
+/* Add this to your style.css */
+@keyframes clickAnimation {
+    0% { transform: scale(1); }
+    50% { transform: scale(0.9); }
+    100% { transform: scale(1); }
+}
+
+.animate-click {
+    animation: clickAnimation 0.3s ease;
+}
+
 /* Footer styling */
 .footer {
     display: flex;

@@ -171,7 +171,7 @@ def generate_excel_report(project_id):
             version_href = version['_meta']['href']
             component_overview = get_version_components(version_href, component_overview, seen_components)
 
-        # Extract and parse content from tab1
+        # Extract and parse content from tab1 for title page
         tab1_content = request.json.get('tab1Content', '')
         soup = BeautifulSoup(tab1_content, 'html.parser')
         parsed_tab1_content = []

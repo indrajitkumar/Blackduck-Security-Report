@@ -5,6 +5,20 @@ body {
     padding: 20px;
 }
 
+body {
+    background-color: #f8f9fa;
+}
+
+.form-signin {
+    max-width: 682px;
+    padding: 15px;
+    margin: auto;
+    background-color: #ffffff;
+    border: 1px solid #e3e6f0;
+    border-radius: 10px;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
 h1 {
     color: #333;
 }
@@ -54,6 +68,13 @@ select {
     margin-top: 20px;
 }
 
+.mt-3, .my-3 {
+    margin-top: 2rem !important;
+    /* padding-block: revert; */
+    margin-right: 206px;
+    margin-left: 213px;
+}
+
 .tab.active {
     display: block;
 }
@@ -67,6 +88,12 @@ th, td {
     border: 1px solid black;
     padding: 8px;
     text-align: left;
+}
+
+.alert-info {
+    color: #c5093c;
+    background-color: #d1ecf1;
+    border-color: #bee5eb;
 }
 
 th {

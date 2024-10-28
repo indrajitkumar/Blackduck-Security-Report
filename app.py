@@ -1,3 +1,5 @@
+import json
+
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 import requests
 
@@ -30,22 +32,34 @@ def authenticate():
     }
 
     # Make the request to the Black Duck API to authenticate
+    try:
+        response = requests.post(url, headers=headers, data=payload)
+        response.raise_for_status()  # Raise an HTTPError for bad responses (4xx and 5xx)
 
-    response = requests.request("POST", url, headers=headers, data=payload)
-
-    print(response.text)
-
-    # Check if the request was successful
-    if response.status_code == 200:
         token_data = response.json()
-        session['bearerToken'] = token_data['bearerToken']  # Store the token in the session
-        return redirect(url_for('projects'))  # Redirect to the projects page
-    else:
-        # If authentication fails, flash an error message and redirect to the login page
-        flash("Failed to authenticate with the provided token. Please try again.")
-        return redirect(url_for('home'))
+        session['bearerToken'] = token_data['bearerToken']
+        return redirect(url_for('projects'))
 
-    # Define the route to get projects
+    except requests.exceptions.HTTPError as http_err:
+        flash(f"HTTP error occurred: {http_err}")
+    except requests.exceptions.ConnectionError:
+        flash("Network error: Unable to connect to Black Duck server.")
+    except requests.exceptions.Timeout:
+        flash("Network error: The request timed out.")
+    except requests.exceptions.RequestException as req_err:
+        flash(f"An error occurred: {req_err}")
+    except json.JSONDecodeError:
+        flash("Failed to parse the response from the server.")
+    except KeyError:
+        flash("Unexpected response format from the server.")
+    except Exception as e:
+        flash(f"An unexpected error occurred: {e}")
+
+    return redirect(url_for('home'))
+
+
+
+# Define the route to get projects
 
 
 @app.route('/projects')

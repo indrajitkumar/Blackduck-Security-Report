@@ -4,24 +4,98 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login to Black Duck</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* Loader Styles */
+        .loader {
+            display: none; /* Hidden by default */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .loader .spinner-border {
+            width: 3rem;
+            height: 3rem;
+        }
+    </style>
 </head>
 <body>
-    <h1>Login to Black Duck</h1>
-    <form action="{{ url_for('authenticate') }}" method="POST">
-        <label for="api_token">API Token:</label>
-        <input type="text" id="api_token" name="api_token" required>
-        <button type="submit">Login</button>
+
+<div class="container">
+    <h1 class="text-center my-4">Login to Black Duck Report Generator</h1>
+
+    <!-- Loader Element -->
+    <div class="loader" id="loader">
+        <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+        </div>
+    </div>
+
+    <form id="loginForm" class="form-signin">
+        <div class="form-group">
+            <label for="api_token">API Token:</label>
+            <input type="text" id="api_token" name="api_token" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Login</button>
     </form>
 
     {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        <ul>
-        {% for message in messages %}
-          <li>{{ message }}</li>
-        {% endfor %}
-        </ul>
-      {% endif %}
+        {% if messages %}
+            <div class="alert alert-info mt-3">
+                <ul class="mb-0">
+                    {% for message in messages %}
+                        <li>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
     {% endwith %}
+    <footer class="text-center mt-5"><p>&copy; 2024 Philips HSCS</p></footer>
+</div>
+
+<script>
+    document.getElementById('loginForm').addEventListener('submit', function(event) {
+        event.preventDefault();  // Prevent default form submission
+        showLoader();  // Show loader when form is submitted
+
+        const apiToken = document.getElementById('api_token').value;
+
+        // Make AJAX POST request to authenticate
+        fetch("{{ url_for('authenticate') }}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: new URLSearchParams({ "api_token": apiToken })
+        })
+            .then(response => {
+                if (response.ok) {
+                    window.location.href = "{{ url_for('projects') }}";  // Redirect to projects if successful
+                } else {
+                    return response.text().then(text => { throw new Error(text); });
+                }
+            })
+            .catch(error => {
+                stopLoader();  // Stop loader if there's an error
+                alert("Authentication failed: " + error.message);  // Show error alert
+            });
+    });
+
+    function showLoader() {
+        document.getElementById('loader').style.display = 'flex';
+    }
+
+    function stopLoader() {
+        document.getElementById('loader').style.display = 'none';
+    }
+</script>
+
 </body>
 </html>

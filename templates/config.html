@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuration</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="left-panel">
+    <a href="/config" onclick="loadContent('/config')" class="nav-link">Configuration</a>
+    <a href="/projects" onclick="loadContent('/projects')" class="nav-link">Software Product security vulnerability report</a>
+    <a href="/bom" onclick="loadContent('/bom')" class="nav-link">Software Bill of Materials report</a>
+</div>
+<div class="right-panel">
+    <div class="header">
+        <h1>Black Duck Report Generator</h1>
+        <p>Configuration</p>
+    </div>
+    <div class="content">
+        <p>Fill in the form below to configure the report.</p>
+    </div>
+    <div class="configuration-container">
+        <h2>Configuration</h2>
+        <form id="configurationForm">
+            <label for="revision">Revision:</label>
+            <input type="text" id="revision" name="revision" required>
+
+            <label for="date">Date:</label>
+            <input type="date" id="date" name="date" required>
+
+            <label for="author">Author:</label>
+            <input type="text" id="author" name="author" required>
+
+            <label for="description">Description of changes:</label>
+            <textarea id="description" name="description" required></textarea>
+
+            <label for="crReason">CR / Reason:</label>
+            <textarea id="crReason" name="crReason" required></textarea>
+
+            <button type="submit">Save Configuration</button>
+        </form>
+    </div>
+</div>
+<script>
+    function loadContent(url) {
+        fetch(url)
+            .then(response => response.text())
+            .then(data => {
+                document.querySelector('.right-panel').innerHTML = data;
+            })
+            .catch(error => console.error('Error loading content:', error));
+    }
+</script>
+</body>
+</html>

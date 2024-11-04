@@ -1,0 +1,39 @@
+.configuration-container {
+    margin-top: 20px;
+    padding: 20px;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+}
+
+.configuration-container h2 {
+    margin-bottom: 20px;
+}
+
+.configuration-container label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+.configuration-container input,
+.configuration-container textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.configuration-container button {
+    padding: 10px 20px;
+    border: none;
+    background-color: #007bff;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.configuration-container button:hover {
+    background-color: #0056b3;
+}

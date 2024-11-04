@@ -29,7 +29,7 @@ def authenticate():
     if response.status_code == 200:
         token_data = response.json()
         session['bearerToken'] = token_data['bearerToken']
-        return redirect(url_for('projects'))
+        return redirect(url_for('config'))
     else:
         flash("Failed to authenticate with the provided token. Please try again.")
         return redirect(url_for('home'))
@@ -262,6 +262,14 @@ def save_to_excel(component_overview, file_path='component_overview.xlsx', tab1_
         worksheet = writer.sheets['References']
         for col_num, col in enumerate(references_df.columns):
             worksheet.set_column(col_num, col_num, 20, wrap_format)
+
+@app.route('/config')
+def config():
+    return render_template('config.html')
+
+@app.route('/bom')
+def bom():
+    return render_template('bom.html')
 
 
 if __name__ == '__main__':

@@ -166,14 +166,24 @@ a:hover {
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 @keyframes button-click-animation {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-    100% { transform: scale(1); }
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+    }
 }
 
 .animate-click {
@@ -222,9 +232,15 @@ a:hover {
 
 /* Add this to your style.css */
 @keyframes clickAnimation {
-    0% { transform: scale(1); }
-    50% { transform: scale(0.9); }
-    100% { transform: scale(1); }
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(0.9);
+    }
+    100% {
+        transform: scale(1);
+    }
 }
 
 .animate-click {
@@ -247,4 +263,100 @@ a:hover {
 .footer p {
     margin: 0;
     text-align: center;
+}
+
+.left-panel {
+    width: 200px;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: #0056b3;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 20px;
+}
+
+.left-panel a {
+    color: white;
+    text-decoration: none;
+    padding: 10px 20px;
+    width: 100%;
+    text-align: center;
+    margin-bottom: 10px;
+    border-radius: 4px;
+}
+
+.left-panel a.selected {
+    background-color: #007bff;
+}
+.left-panel a:hover {
+    background-color: #007bff;
+}
+
+.right-panel {
+    margin-left: 200px;
+    padding: 20px;
+}
+
+
+/* css for coming soon page*/
+.coming-soon-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    text-align: center;
+    background-color: #f3f4f6;
+    color: #333;
+}
+
+.coming-soon-container h1 {
+    font-size: 3em;
+    margin-bottom: 20px;
+}
+
+.coming-soon-container p {
+    font-size: 1.5em;
+    margin-bottom: 40px;
+}
+
+#countdown {
+    font-size: 2em;
+    color: #007bff;
+}
+.wip-animation {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.wip-circle {
+    width: 20px;
+    height: 20px;
+    margin: 0 5px;
+    background-color: #007bff;
+    border-radius: 50%;
+    animation: wip-bounce 1.5s infinite;
+}
+
+.wip-circle:nth-child(2) {
+    animation-delay: 0.3s;
+}
+
+.wip-circle:nth-child(3) {
+    animation-delay: 0.6s;
+}
+
+@keyframes wip-bounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-15px);
+    }
 }

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coming Soon</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="left-panel">
+    <a href="/config" onclick="loadContent('/config')" class="nav-link">Configuration</a>
+    <a href="/projects" onclick="loadContent('/projects')" class="nav-link">Software Product security vulnerability report</a>
+    <a href="/bom" onclick="loadContent('/bom')" class="nav-link">Software Bill of Materials report</a>
+</div>
+<div class="coming-soon-container">
+    <h1>Coming Soon</h1>
+    <p>We are working hard to bring you this feature. Stay tuned!</p>
+    <div id="countdown"></div>
+    <div class="wip-animation">
+        <div class="wip-circle"></div>
+        <div class="wip-circle"></div>
+        <div class="wip-circle"></div>
+    </div>
+</div>
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

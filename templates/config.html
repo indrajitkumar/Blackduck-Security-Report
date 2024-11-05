@@ -9,20 +9,36 @@
 <body>
 <div class="left-panel">
     <a href="/config" onclick="loadContent('/config')" class="nav-link">Configuration</a>
-    <a href="/projects" onclick="loadContent('/projects')" class="nav-link">Software Product security vulnerability report</a>
+    <a href="/projects" onclick="loadContent('/projects')" class="nav-link">Software Product security vulnerability
+        report</a>
     <a href="/bom" onclick="loadContent('/bom')" class="nav-link">Software Bill of Materials report</a>
+    <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+    <img src="https://blackduck.philips.com/static/images/b6d9c4bd.svg" alt="Black Duck Logo"
+         style="width: 150px; height: auto; margin-bottom: 20px;">
+    <br>
+    <img src="https://static.vecteezy.com/system/resources/previews/022/101/084/large_2x/philips-logo-transparent-free-png.png"
+         alt="Black Duck Logo"
+         style="width: 150px; height: auto; margin-bottom: 20px;">
 </div>
 <div class="right-panel">
     <div class="header">
         <h1>Black Duck Report Generator</h1>
-        <p>Configuration</p>
     </div>
     <div class="content">
         <p>Fill in the form below to configure the report.</p>
     </div>
     <div class="configuration-container">
-        <h2>Configuration</h2>
+        <h2>Document revision history</h2>
         <form id="configurationForm">
+            <label for="referenceNumber">Reference number:</label>
+            <input type="text" id="referenceNumber" name="referenceNumber" required>
+
+            <label for="documentTitle">Document title:</label>
+            <input type="text" id="documentTitle" name="documentTitle" required>
+
+            <label for="documentId">Document ID:</label>
+            <input type="text" id="documentId" name="documentId" required>
+
             <label for="revision">Revision:</label>
             <input type="text" id="revision" name="revision" required>
 
@@ -40,6 +56,17 @@
 
             <button type="submit">Save Configuration</button>
         </form>
+        <br>
+        <h2>Terminology & Abbreviations</h2>
+        <div class="terminology-container">
+            <div class="input-row">
+                <label for="term"></label><input type="text" id="term" placeholder="Term" required>
+                <label for="abbreviation"></label><input type="text" id="abbreviation" placeholder="Abbreviation"
+                                                         required>
+                <button type="button" onclick="addTerm()">Add</button>
+            </div>
+            <ul id="termList"></ul>
+        </div>
     </div>
 </div>
 <script>
@@ -50,6 +77,23 @@
                 document.querySelector('.right-panel').innerHTML = data;
             })
             .catch(error => console.error('Error loading content:', error));
+    }
+
+    function addTerm() {
+        const term = document.getElementById('term').value;
+        const abbreviation = document.getElementById('abbreviation').value;
+
+        if (term && abbreviation) {
+            const li = document.createElement('li');
+            li.textContent = `${term}: ${abbreviation}`;
+            document.getElementById('termList').appendChild(li);
+
+            // Clear the input fields
+            document.getElementById('term').value = '';
+            document.getElementById('abbreviation').value = '';
+        } else {
+            alert('Please fill in both fields.');
+        }
     }
 </script>
 </body>

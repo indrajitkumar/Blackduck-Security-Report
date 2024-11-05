@@ -2,12 +2,12 @@ document.addEventListener('DOMContentLoaded', (event) => {
     // Set the date we're counting down to
     let countDownDate = new Date("Nov 31, 2024 23:59:59").getTime();
 
-    // Update the count down every 1 second
+    // Update the count-down every 1 second
     let countdownFunction = setInterval(function() {
         // Get today's date and time
         let now = new Date().getTime();
 
-        // Find the distance between now and the count down date
+        // Find the distance between now and the count-down date
         let distance = countDownDate - now;
 
         // Time calculations for days, hours, minutes and seconds
@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
         document.getElementById("countdown").innerHTML = days + "d " + hours + "h "
         + minutes + "m " + seconds + "s ";
 
-        // If the count down is over, write some text
+        // If the count-down is over, write some text
         if (distance < 0) {
             clearInterval(countdownFunction);
             document.getElementById("countdown").innerHTML = "EXPIRED";

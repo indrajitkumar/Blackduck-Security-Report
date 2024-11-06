@@ -5,128 +5,179 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Black Duck Projects</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 </head>
 <body>
-<div class="left-panel">
-    <a href="/config" onclick="loadContent('/config')" class="nav-link">Configuration</a>
-    <a href="/projects" onclick="loadContent('/projects')" class="nav-link">Software Product security vulnerability report</a>
-    <a href="/bom" onclick="loadContent('/bom')" class="nav-link">Software Bill of Materials report</a>
-</div>
-<div class="right-panel" id="right-panel">
-    <h1>Black Duck Projects</h1>
-    <div class="button-container">
-        <button type="button" onclick="generateExcelReport()">Generate Excel Report</button>
-    </div>
-    <form id="projectForm">
-        <label for="projects">Select a project:</label>
-        <select id="projects" name="projects" onchange="getSelectedProject()">
-            {% for project in projects %}
-                <option value="{{ project._meta.href.split('/')[-1] }}"
-                        data-name="{{ project.name }}">{{ project.name }}</option>
-            {% endfor %}
-        </select>
+<div class="d-flex">
+    {% include 'left_panel.html' %}
+    <div class="right-panel flex-grow-1 p-4">
+        <h2 class="mb-4 text-center">Software Product Security Vulnerability Report</h2>
 
-        <div class="input-container">
-            <label for="newData">Enter project name with version:</label>
-            <input type="text" id="newData" name="newData" oninput="updatePlaceholder()">
+        <!-- Project Selection Form -->
+        <form id="projectForm" class="mb-4">
+            <div class="row align-items-center">
+                <!-- Project Selection -->
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="projects">Select a project</label>
+                        <select id="projects" name="projects" class="form-control" onchange="getSelectedProject()">
+                            <option value="" disabled selected>--Select--</option>
+                            {% for project in projects %}
+                                <option value="{{ project._meta.href.split('/')[-1] }}" data-name="{{ project.name }}">{{ project.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+
+                <!-- Project Name with Version -->
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="newData">Enter project name with version</label>
+                        <input type="text" id="newData" name="newData" class="form-control" oninput="updatePlaceholder()">
+                    </div>
+                </div>
+
+            </div>
+        </form>
+
+{#        <!-- Selected Project Name -->#}
+{#        <h2 id="selectedProjectName" class="mb-4">Select a project to see its name here</h2>#}
+
+        <div class="d-flex justify-content-between mb-4">
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-primary" onclick="showTab('tab1')">Title Page</button>
+                <button type="button" class="btn btn-primary" onclick="showTab('tab2')">Component Overview</button>
+                <button type="button" class="btn btn-primary" onclick="showTab('tab3')">Analysis</button>
+                <button type="button" class="btn btn-primary" onclick="showTab('tab4')">Document Revision History</button>
+                <button type="button" class="btn btn-primary" onclick="showTab('tab5')">Abbreviations</button>
+                <button type="button" class="btn btn-primary" onclick="showTab('tab6')">References</button>
+            </div>
+            <button type="button" class="btn btn-primary" onclick="generateExcelReport()">Generate Excel Report</button>
         </div>
-    </form>
-    <h2 id="selectedProjectName">Select a project to see its name here</h2>
+        <!-- Tab Content -->
+        <div class="tab-content">
+            <div id="tab1" class="tab active">
+                <h2>Purpose</h2>
+                <p>
+                    "This document is used to report the product security analysis of vulnerabilities in software and hardware elements and parts (components), which are used in <span id="placeholder1">___________________</span>. This report is established during design to capture remaining vulnerabilities. As new security issues including vulnerabilities are continuously identified in software and hardware components, this report must be maintained during the entire lifecycle until End-of-Support, as part of post-market obligations for both medical as well as non-medical products. This document demonstrates the continuous analysis of security issues and new vulnerabilities and serves as a trigger for follow-up actions and as an input into the higher-level product security risk assessment to further assess specific vulnerabilities and/or a set of aggregated vulnerabilities within specific components. This report uses the Software bill of materials (SBOM) document [REF-1] as one of its inputs. It captures the product-related vulnerability information, which originates from many sources such as information supplied by third-party sources."
+                </p>
+                <h2>Scope</h2>
+                <p>
+                    "This document is applicable to all software and hardware components used in <span id="placeholder">___________________</span>"
+                </p>
+            </div>
 
-    <div class="tab-buttons">
-        <button type="button" onclick="showTab('tab1')">Title Page</button>
-        <button type="button" onclick="showTab('tab2')">Component overview</button>
-        <button type="button" onclick="showTab('tab3')">Analysis</button>
-        <button type="button" onclick="showTab('tab4')">Document revision history</button>
-        <button type="button" onclick="showTab('tab5')">Abbreviations</button>
-        <button type="button" onclick="showTab('tab6')">References</button>
+            <div id="tab2" class="tab">
+                <h2>Component Overview</h2>
+                <table class="table table-striped" id="projectDataTable">
+                    <thead>
+                    <tr>
+                        <th>Component Name</th>
+                        <th>Component Version</th>
+                        <th>Description</th>
+                        <th>Support Status</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <!-- Data will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="tab3" class="tab">
+                <h2>Analysis</h2>
+                <table class="table table-striped" id="projectDataTable1">
+                    <thead>
+                    <tr>
+                        <th>Review Date (YYYY-MM-DD)</th>
+                        <th>Component Name</th>
+                        <th>Component Version</th>
+                        <th>Vulnerability ID (e.g., CVE)</th>
+                        <th>Description</th>
+                        <th>Base Score</th>
+                        <th>Exploitability</th>
+                        <th>Impact</th>
+                        <th>Remediation Status</th>
+                        <th>Remediation Comment</th>
+                        <th>Severity Rating</th>
+                        <th>Update PSSD?</th>
+                        <th>Manage Defect Requested?</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <!-- Data will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="tab4" class="tab">
+                <h2>Document Revision History</h2>
+                <table class="table table-bordered" id="revisionHistoryTable">
+                    <thead class="thead-light">
+                    <tr>
+                        <th>Revision</th>
+                        <th>Revision Date</th>
+                        <th>Author</th>
+                        <th>Attendees</th>
+                        <th>Reason</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td contenteditable="true" class="editable-cell">A</td>
+                        <td contenteditable="true" class="editable-cell">See Windchill</td>
+                        <td contenteditable="true" class="editable-cell">PS Jayalakshmi</td>
+                        <td contenteditable="true" class="editable-cell">Xander Heemskerk, Akhil Naik, Rohit Kumar, Cheena Kathpal, Rohini Balasubramanya, Pradeep Kumar Purushothaman</td>
+                        <td contenteditable="true" class="editable-cell">Vulnerability analysis report for HSCS DataCore 4.6.0.0 release</td>
+                        <td>
+                            <button class="btn btn-danger btn-sm" onclick="deleteRow(this)">Delete</button>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                <button class="btn btn-primary" onclick="addRow('revisionHistoryTable', 5)">Add Row</button>
+            </div>
+
+            <div id="tab5" class="tab">
+                <h2>Terminology & Abbreviations</h2>
+                <table class="table table-bordered" id="termAbbrev">
+                    <thead class="thead-light">
+                    <tr>
+                        <th>Terminology & Abbreviations</th>
+                        <th>Description/Definition</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td contenteditable="true" class="editable-cell">CF</td>
+                        <td contenteditable="true" class="editable-cell">Cloud Foundry</td>
+                        <td>
+                            <button class="btn btn-danger btn-sm" onclick="deleteRow(this)">Delete</button>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                <button class="btn btn-primary" onclick="addRow('termAbbrev', 2)">Add Row</button>
+            </div>
+
+            <div id="tab6" class="tab">
+                <h2>References</h2>
+                <p>Content for Tab 6 goes here.</p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer mt-4">
+            <p>&copy; 2024 PHDSI - HSCS. All rights reserved.</p>
+        </div>
+
+        <!-- Loader -->
+        <div class="loader" id="loader" style="display: none;"></div>
     </div>
 
-    <div id="tab1" class="tab active">
-        <h2>Purpose</h2>
-        <p>"This document is used to report the product security analysis of vulnerabilities in software and hardware
-            elements and parts (components), which are used in <span id="placeholder1">___________________</span>. This
-            report is established
-            during design to capture remaining vulnerabilities. As new security issues including vulnerabilities are
-            continuously identified in software and hardware components, this report must be maintained during the
-            entire
-            lifecycle until End-of-Support, as part of post market obligations for both medical as well as non-medical
-            products.
-            This document demonstrates the continuous analysis of security issues and new vulnerabilities and serves as
-            a
-            trigger for follow-up actions and as an input into the higher-level product security risk assessment to
-            further
-            assess specific vulnerabilities and/or a set of aggregated vulnerabilities within specific components.
-            This report uses the Software bill of materials (SBOM) document [REF-1] as one of its inputs. It captures
-            the
-            product-related vulnerability information, which originates from many sources such as information supplied
-            by
-            third party sources." </p>
-
-        <h2>Scope</h2>
-        <p>"This document is applicable to all software and hardware components used in <span id="placeholder">___________________</span>
-    </div>
-    <div id="tab2" class="tab">
-        <h2>Component Overview</h2>
-        <table id="projectDataTable">
-            <thead>
-            <tr>
-                <th>Component name</th>
-                <th>Component version</th>
-                <th>Description</th>
-                <th>Support Status</th>
-            </tr>
-            </thead>
-            <tbody>
-            <!-- Data will be populated here -->
-            </tbody>
-        </table>
-    </div>
-    <div id="tab3" class="tab">
-        <h2>Analysis</h2>
-        <table id="projectDataTable1">
-            <thead>
-            <tr>
-                <th>Review date (YYYY-MM-DD)</th>
-                <th>Component name</th>
-                <th>Component version</th>
-                <th>Vulnerability ID (e.g. CVE)</th>
-                <th>Description</th>
-                <th>Base score</th>
-                <th>Exploitability</th>
-                <th>Impact</th>
-                <th>Remediation status</th>
-                <th>Remediation comment</th>
-                <th>Severity rating</th>
-                <th>Update PSSD?</th>
-                <th>Manage Defect requested?</th>
-            </tr>
-            </thead>
-            <tbody>
-            <!-- Data will be populated here -->
-            </tbody>
-        </table>
-    </div>
-    <div id="tab4" class="tab">
-        <h2>Document Revision History</h2>
-        <p>Content for Tab 4 goes here.</p>
-    </div>
-    <div id="tab5" class="tab">
-        <h2>Terminology & Abbreviations</h2>
-        <p>Content for Tab 5 goes here.</p>
-    </div>
-    <div id="tab6" class="tab">
-        <h2>References</h2>
-        <p>Content for Tab 6 goes here.</p>
-    </div>
-
-    <div class="footer">
-        <p>&copy; 2024 PHDSI - HSCS. All rights reserved.</p>
-    </div>
-    <div class="loader" id="loader"></div>
-
-</div>
-<script>
+    <script>
     function showTab(tabId) {
         let tabs = document.querySelectorAll('.tab');
         tabs.forEach(function (tab) {
@@ -303,6 +354,29 @@
             });
         });
     });
+
+    // Function to add a new row
+    function addRow( tableId, cellCount)  {
+        const table = document.getElementById(tableId).getElementsByTagName('tbody')[0];
+        const newRow = table.insertRow();
+
+        for (let i = 0; i < cellCount; i++) {
+            const cell = newRow.insertCell(i);
+            cell.contentEditable = "true";
+            cell.className = "editable-cell";
+            cell.textContent = ""; // Start with empty cells
+        }
+
+        // Add delete button
+        const actionsCell = newRow.insertCell(cellCount);
+        actionsCell.innerHTML = '<button class="btn btn-danger btn-sm" onclick="deleteRow(this)">Delete</button>';
+    }
+
+    // Function to delete a row
+    function deleteRow(button) {
+        const row = button.closest("tr");
+        row.parentNode.removeChild(row);
+    }
 </script>
 </body>
 </html>

@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 import requests
 import pandas as pd
 import os
-
+import ast
 
 # Create Flask app instance
 app = Flask(__name__)
@@ -12,9 +12,11 @@ app.secret_key = "supersecretkey"  # Used for flashing messages
 # Black Duck API URL (replace with your Black Duck instance URL)
 BLACKDUCK_URL = "https://blackduck.philips.com"
 
+
 @app.route('/')
 def home():
     return render_template('index.html')
+
 
 @app.route('/authenticate', methods=['POST'])
 def authenticate():
@@ -34,6 +36,7 @@ def authenticate():
         flash("Failed to authenticate with the provided token. Please try again.")
         return redirect(url_for('home'))
 
+
 @app.route('/projects')
 def projects():
     bearer_token = session.get('bearerToken')
@@ -52,6 +55,7 @@ def projects():
     else:
         flash("Failed to fetch projects. Please try again.")
         return redirect(url_for('home'))
+
 
 @app.route('/projects/<project_id>')
 def get_project_versions(project_id):
@@ -75,6 +79,7 @@ def get_project_versions(project_id):
         return {'status': 'success', 'data': component_overview}
     else:
         return {'status': 'error', 'message': 'Failed to fetch project versions'}
+
 
 def get_version_components(versionIds, component_overview, seen_components):
     filters = 'filter=bomInclusion:false&filter=bomMatchInclusion:false&filter=bomMatchReviewStatus:reviewed&filter=securityRisk:high&filter=securityRisk:medium&limit=100&offset=0'
@@ -104,6 +109,7 @@ def get_version_components(versionIds, component_overview, seen_components):
     else:
         return {'status': 'error', 'message': 'Failed to fetch project versions'}
 
+
 def get_component_details(param):
     bearer_token = session.get('bearerToken')
     if not bearer_token:
@@ -120,6 +126,7 @@ def get_component_details(param):
         return description
     else:
         return {'status': 'error', 'message': 'Failed to fetch project versions'}
+
 
 def get_component_version_details(param):
     vulnerabilities = '/vulnerabilities?limit=100&offset=0&sort=overallScore%20DESC'
@@ -143,14 +150,18 @@ def get_component_version_details(param):
                         'vulnerabilityUpdatedDate': component_version_details.get('publishedDate', 'No date found'),
                         'vulnerabilityName': component_version_details.get('name', 'No name found'),
                         'description': component_version_details.get('description', 'No description found'),
-                        'baseScore': component_version_details.get('cvss3',{}).get('baseScore', 'No score found'),
-                        'impactSubscore': component_version_details.get('cvss3',{}).get('impactSubscore', 'No score found'),
-                        'exploitabilitySubscore': component_version_details.get('cvss3',{}).get('exploitabilitySubscore', 'No score found'),
+                        'baseScore': component_version_details.get('cvss3', {}).get('baseScore', 'No score found'),
+                        'impactSubscore': component_version_details.get('cvss3', {}).get('impactSubscore',
+                                                                                         'No score found'),
+                        'exploitabilitySubscore': component_version_details.get('cvss3', {}).get(
+                            'exploitabilitySubscore', 'No score found'),
                         'severity': component_version_details.get('severity', 'No severity found')
                     })
         return vulnerabilities
     else:
         return {'status': 'error', 'message': 'Failed to fetch project versions'}
+
+
 @app.route('/generate_excel_report/<project_id>', methods=['POST'])
 def generate_excel_report(project_id):
     bearer_token = session.get('bearerToken')
@@ -186,17 +197,18 @@ def generate_excel_report(project_id):
         if not os.path.exists(download_dir):
             os.makedirs(download_dir)
 
-        file_path = os.path.join(download_dir, 'component_overview.xlsx')
+        file_path = os.path.join(download_dir, 'HSCS Product security vulnerability analysis report.xlsx')
         save_to_excel(component_overview, file_path, parsed_tab1_content)
         return send_file(file_path, as_attachment=True)
     else:
         return {'status': 'error', 'message': 'Failed to fetch project versions'}
 
 
-def save_to_excel(component_overview, file_path='component_overview.xlsx', tab1_content=[]):
+def save_to_excel(component_overview, file_path='HSCS Product security vulnerability analysis report.xlsx', tab1_content=[]):
     with pd.ExcelWriter(file_path, engine='xlsxwriter') as writer:
         workbook = writer.book
         wrap_format = workbook.add_format({'text_wrap': True, 'align': 'justify', 'valign': 'top'})
+        merge_format = workbook.add_format({'align': 'center', 'valign': 'vcenter', 'bold': True})
 
         # Title Page
         title_page_data = []
@@ -206,6 +218,11 @@ def save_to_excel(component_overview, file_path='component_overview.xlsx', tab1_
         title_page_df = pd.DataFrame(title_page_data, columns=['Purpose'])
         title_page_df.to_excel(writer, sheet_name='Title Page', index=False)
         worksheet = writer.sheets['Title Page']
+        worksheet.set_header('&CProduct security vulnerability analysis report for HSCS')  # Centered header text
+        worksheet.set_footer(
+            '&CNote: for template information, see custom properties of this document. &RFor Internal Use Only')  # Left, Center, and Right footer text
+        worksheet.set_paper(9)  # Set paper size to A4
+        worksheet.fit_to_pages(1, 0)
         for col_num, col in enumerate(title_page_df.columns):
             worksheet.set_column(col_num, col_num, 150, wrap_format)
 
@@ -214,6 +231,11 @@ def save_to_excel(component_overview, file_path='component_overview.xlsx', tab1_
             [{k: v for k, v in item.items() if k != 'componentVersion'} for item in component_overview])
         component_overview_df.to_excel(writer, sheet_name='Component Overview', index=False)
         worksheet = writer.sheets['Component Overview']
+        worksheet.set_header('&CProduct security vulnerability analysis report for HSCS')  # Centered header text
+        worksheet.set_footer(
+            '&CNote: for template information, see custom properties of this document. &RFor Internal Use Only')  # Left, Center, and Right footer text
+        worksheet.set_paper(9)  # Set paper size to A4
+        worksheet.fit_to_pages(1, 0)
         for col_num, col in enumerate(component_overview_df.columns):
             worksheet.set_column(col_num, col_num, 30, wrap_format)
 
@@ -239,37 +261,127 @@ def save_to_excel(component_overview, file_path='component_overview.xlsx', tab1_
         analysis_df = pd.DataFrame(analysis_data)
         analysis_df.to_excel(writer, sheet_name='Analysis', index=False)
         worksheet = writer.sheets['Analysis']
+        worksheet.write(1, 1, 'Unless indicated otherwise the vulnerability severity rating below is assessed using the <CVSS 3.1> scoring methodology.')
+        worksheet.set_header('&CProduct security vulnerability analysis report for HSCS')  # Centered header text
+        worksheet.set_footer(
+            '&CNote: for template information, see custom properties of this document. &RFor Internal Use Only')  # Left, Center, and Right footer text
+
+
+        worksheet.set_paper(9)  # Set paper size to A4
+        worksheet.fit_to_pages(1, 0)
         for col_num, col in enumerate(analysis_df.columns):
             worksheet.set_column(col_num, col_num, 30, wrap_format)
 
         # Document Revision History
-        revision_history_df = pd.DataFrame([{'Revision': '1.0', 'Date': '2023-10-01', 'Description': 'Initial version'}])
+        revision_data =  session.get('revision_data', {})
+        revision = revision_data.get('revision')
+        date = revision_data.get('date')
+        author = revision_data.get('author')
+        attendees = revision_data.get('attendees')
+        crReason = revision_data.get('crReason')
+        revision_history_df = pd.DataFrame([{'Revision': revision, 'Date': date, 'Author': author, 'Attendees': attendees, 'Reason': crReason}])
         revision_history_df.to_excel(writer, sheet_name='Document Revision History', index=False)
         worksheet = writer.sheets['Document Revision History']
+        worksheet.write(1, 1, 'Document revision history')
+        worksheet.set_header('&CProduct security vulnerability analysis report for HSCS')  # Centered header text
+        worksheet.set_footer(
+            '&CNote: for template information, see custom properties of this document. &RFor Internal Use Only')  # Left, Center, and Right footer text
+
+
+        worksheet.set_paper(9)  # Set paper size to A4
+        worksheet.fit_to_pages(1, 0)
         for col_num, col in enumerate(revision_history_df.columns):
             worksheet.set_column(col_num, col_num, 20, wrap_format)
 
         # Terminology & Abbreviations
-        abbreviations_df = pd.DataFrame([{'Term': 'PSSD', 'Definition': 'Product Security Software Development'}])
+        # Define the list
+        data_list = revision_data.get('terms')
+
+        # Convert the string to a list
+        terms_list = ast.literal_eval(data_list)
+        # Initialize an empty dictionary
+        data_dict = {'Terminology & Abbreviations': [], 'Description/Definition': []}
+
+        # Iterate over the list and split each string by the colon
+        for item in terms_list:
+            if ": " in item:
+                key, value = item.split(": ", 1)
+                data_dict['Terminology & Abbreviations'].append(key)
+                data_dict['Description/Definition'].append(value)
+            else:
+                print(f"Skipping invalid item: {item}")
+
+        # Create a DataFrame from the dictionary
+        abbreviations_df = pd.DataFrame(data_dict)
+        print(abbreviations_df)
+        worksheet.write(1, 1, 'Terminology & Abbreviations	')
         abbreviations_df.to_excel(writer, sheet_name='Terminology & Abbreviations', index=False)
         worksheet = writer.sheets['Terminology & Abbreviations']
+        worksheet.set_header('&CProduct security vulnerability analysis report for HSCS')  # Centered header text
+        worksheet.set_footer(
+            '&CNote: for template information, see custom properties of this document. &RFor Internal Use Only')  # Left, Center, and Right footer text
+
+
+        worksheet.set_paper(9)  # Set paper size to A4
+        worksheet.fit_to_pages(1, 0)
         for col_num, col in enumerate(abbreviations_df.columns):
             worksheet.set_column(col_num, col_num, 20, wrap_format)
 
         # References
-        references_df = pd.DataFrame([{'Reference': 'Black Duck API Documentation', 'Link': 'https://blackducksoftware.github.io/'}])
+        referenceNumber = revision_data.get('referenceNumber')
+        documentTitle = revision_data.get('documentTitle')
+        documentId = revision_data.get('documentId')
+        # Write the header row
+
+        references_df = pd.DataFrame(
+            [{'Reference number': referenceNumber, 'Document title':documentTitle, 'Document ID': documentId}])
         references_df.to_excel(writer, sheet_name='References', index=False)
+        worksheet.merge_range('A1:B1', 'References', merge_format)
         worksheet = writer.sheets['References']
+        worksheet.set_header('&CProduct security vulnerability analysis report for HSCS')  # Centered header text
+        worksheet.set_footer(
+            '&CNote: for template information, see custom properties of this document. &RFor Internal Use Only')  # Left, Center, and Right footer text
+
+
+        worksheet.set_paper(9)  # Set paper size to A4
+        worksheet.fit_to_pages(1, 0)
         for col_num, col in enumerate(references_df.columns):
             worksheet.set_column(col_num, col_num, 20, wrap_format)
 
+
+@app.route('/save_revision_data', methods=['POST'])
+def save_revision_data():
+    revision_data = {
+        'referenceNumber': request.form.get('referenceNumber'),
+        'documentTitle': request.form.get('documentTitle'),
+        'documentId': request.form.get('documentId'),
+        'revision': request.form.get('revision'),
+        'date': request.form.get('date'),
+        'author': request.form.get('author'),
+        'attendees': request.form.get('attendees'),
+        'crReason': request.form.get('crReason'),
+        'terms': request.form.get('terms')
+    }
+    # Save the data to a session or database (for simplicity, using session here)
+    session['revision_data'] = revision_data
+    return jsonify({'status': 'success'})
+
+@app.route('/get_revision_data', methods=['GET'])
+def get_revision_data():
+    revision_data = session.get('revision_data', {})
+    if revision_data:
+        return jsonify({'status': 'success', 'revision_data': revision_data})
+    else:
+        return jsonify({'status': 'error', 'message': 'No data found'})
 @app.route('/config')
 def config():
     return render_template('config.html')
 
+
 @app.route('/bom')
 def bom():
     return render_template('bom.html')
+
 
 
 if __name__ == '__main__':

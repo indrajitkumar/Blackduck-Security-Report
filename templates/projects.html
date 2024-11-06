@@ -16,7 +16,8 @@
     <img src="https://blackduck.philips.com/static/images/b6d9c4bd.svg" alt="Black Duck Logo"
          style="width: 150px; height: auto; margin-bottom: 20px;">
     <br>
-    <img src="https://static.vecteezy.com/system/resources/previews/022/101/084/large_2x/philips-logo-transparent-free-png.png" alt="Black Duck Logo"
+    <img src="https://static.vecteezy.com/system/resources/previews/022/101/084/large_2x/philips-logo-transparent-free-png.png"
+         alt="Black Duck Logo"
          style="width: 150px; height: auto; margin-bottom: 20px;">
 </div>
 <div class="right-panel" id="right-panel">
@@ -116,15 +117,18 @@
     </div>
     <div id="tab4" class="tab">
         <h2>Document Revision History</h2>
-        <p>Content for Tab 4 goes here.</p>
+        <div id="revisionDataContainer">
+        </div>
     </div>
     <div id="tab5" class="tab">
         <h2>Terminology & Abbreviations</h2>
-        <p>Content for Tab 5 goes here.</p>
+        <div id="termListDataContainer">
+        </div>
     </div>
     <div id="tab6" class="tab">
         <h2>References</h2>
-        <p>Content for Tab 6 goes here.</p>
+        <div id="referencesDataContainer">
+        </div>
     </div>
 
     <div class="footer">
@@ -309,6 +313,59 @@
                 }, 300);
             });
         });
+    });
+
+    document.addEventListener('DOMContentLoaded', (event) => {
+        fetch('/get_revision_data')
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    const revisionData = data.revision_data;
+                    document.getElementById('revisionDataContainer').innerHTML = `
+                        <table>
+                            <tr><th>Revision</th><td>${revisionData.revision}</td></tr>
+                            <tr><th>Revision Date</th><td>${revisionData.date}</td></tr>
+                            <tr><th>Author</th><td>${revisionData.author}</td></tr>
+                            <tr><th>Attendees</th><td>${revisionData.attendees}</td></tr>
+                            <tr><th>Reason</th><td>${revisionData.crReason}</td></tr>
+                        </table>
+                    `;
+                } else {
+                    document.getElementById('revisionDataContainer').innerHTML = 'No data available';
+                }
+
+                if (data.status === 'success') {
+                    const revisionData = data.revision_data;
+                    const terms = JSON.parse(revisionData.terms);
+                    let termsTable = '<table><tr><th>Term</th><th>Abbreviation</th></tr>';
+                    terms.forEach(term => {
+                        const [key, value] = term.split(': ');
+                        termsTable += `<tr><td>${key}</td><td>${value}</td></tr>`;
+                    });
+                    termsTable += '</table>';
+                    document.getElementById('termListDataContainer').innerHTML = termsTable;
+                } else {
+                    document.getElementById('termListDataContainer').innerHTML = 'No data available';
+                }
+
+                if (data.status === 'success') {
+                    const revisionData = data.revision_data;
+                    document.getElementById('referencesDataContainer').innerHTML = `
+                        <table>
+                            <tr><th>Reference Number</th><td>${revisionData.referenceNumber}</td></tr>
+                            <tr><th>Document Title</th><td>${revisionData.documentTitle}</td></tr>
+                            <tr><th>Document ID</th><td>${revisionData.documentId}</td></tr>
+
+                        </table>
+                    `;
+                } else {
+                    document.getElementById('referencesDataContainer').innerHTML = 'No data aailable';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('referencesDataContainer').innerHTML = 'Failed to load data';
+            });
     });
 </script>
 </body>

@@ -29,7 +29,7 @@
     </div>
     <div class="configuration-container">
         <h2>Document revision history</h2>
-        <form id="configurationForm">
+        <form id="configurationForm" onsubmit="saveRevisionData(event)">
             <label for="referenceNumber">Reference number:</label>
             <input type="text" id="referenceNumber" name="referenceNumber" required>
 
@@ -48,25 +48,23 @@
             <label for="author">Author:</label>
             <input type="text" id="author" name="author" required>
 
-            <label for="description">Description of changes:</label>
-            <textarea id="description" name="description" required></textarea>
+            <label for="attendees">Attendees:</label>
+            <textarea id="attendees" name="attendees" required></textarea>
 
-            <label for="crReason">CR / Reason:</label>
+            <label for="crReason">Reason:</label>
             <textarea id="crReason" name="crReason" required></textarea>
 
-            <button type="submit">Save Configuration</button>
-        </form>
-        <br>
-        <h2>Terminology & Abbreviations</h2>
-        <div class="terminology-container">
+            <br>
+            <h2>Terminology & Abbreviations</h2>
             <div class="input-row">
-                <label for="term"></label><input type="text" id="term" placeholder="Term" required>
-                <label for="abbreviation"></label><input type="text" id="abbreviation" placeholder="Abbreviation"
-                                                         required>
+                <label for="term"></label><input type="text" id="term" placeholder="Term">
+                <label for="abbreviation"></label><input type="text" id="abbreviation" placeholder="Abbreviation">
                 <button type="button" onclick="addTerm()">Add</button>
             </div>
             <ul id="termList"></ul>
-        </div>
+
+            <button type="submit">Save Configuration</button>
+        </form>
     </div>
 </div>
 <script>
@@ -94,6 +92,39 @@
         } else {
             alert('Please fill in both fields.');
         }
+    }
+
+    function saveRevisionData(event) {
+        event.preventDefault(); // Prevent the form from submitting
+
+        // Get the form data
+        const formData = new FormData(document.getElementById('configurationForm'));
+
+        // Collect terms and abbreviations from the termList
+        const termList = document.getElementById('termList').children;
+        const terms = [];
+        for (let i = 0; i < termList.length; i++) {
+            terms.push(termList[i].textContent);
+        }
+        formData.append('terms', JSON.stringify(terms));
+
+        // Send the data to the server
+        fetch('/save_revision_data', {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert('Data saved successfully');
+                } else {
+                    alert('Failed to save data');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while saving data');
+            });
     }
 </script>
 </body>

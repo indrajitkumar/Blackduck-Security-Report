@@ -204,11 +204,13 @@ def generate_excel_report(project_id):
         return {'status': 'error', 'message': 'Failed to fetch project versions'}
 
 
-def save_to_excel(component_overview, file_path='HSCS Product security vulnerability analysis report.xlsx', tab1_content=[]):
+def save_to_excel(component_overview, file_path='HSCS Product security vulnerability analysis report.xlsx',
+                  tab1_content=[]):
     with pd.ExcelWriter(file_path, engine='xlsxwriter') as writer:
         workbook = writer.book
         wrap_format = workbook.add_format({'text_wrap': True, 'align': 'justify', 'valign': 'top'})
         merge_format = workbook.add_format({'align': 'center', 'valign': 'vcenter', 'bold': True})
+        border_format = workbook.add_format({'border': 1})
 
         # Title Page
         title_page_data = []
@@ -218,26 +220,14 @@ def save_to_excel(component_overview, file_path='HSCS Product security vulnerabi
         title_page_df = pd.DataFrame(title_page_data, columns=['Purpose'])
         title_page_df.to_excel(writer, sheet_name='Title Page', index=False)
         worksheet = writer.sheets['Title Page']
-        worksheet.set_header('&CProduct security vulnerability analysis report for HSCS')  # Centered header text
-        worksheet.set_footer(
-            '&CNote: for template information, see custom properties of this document. &RFor Internal Use Only')  # Left, Center, and Right footer text
-        worksheet.set_paper(9)  # Set paper size to A4
-        worksheet.fit_to_pages(1, 0)
-        for col_num, col in enumerate(title_page_df.columns):
-            worksheet.set_column(col_num, col_num, 150, wrap_format)
+        worksheet_formater(title_page_df, border_format, worksheet, wrap_format)
 
         # Component Overview
         component_overview_df = pd.DataFrame(
             [{k: v for k, v in item.items() if k != 'componentVersion'} for item in component_overview])
         component_overview_df.to_excel(writer, sheet_name='Component Overview', index=False)
         worksheet = writer.sheets['Component Overview']
-        worksheet.set_header('&CProduct security vulnerability analysis report for HSCS')  # Centered header text
-        worksheet.set_footer(
-            '&CNote: for template information, see custom properties of this document. &RFor Internal Use Only')  # Left, Center, and Right footer text
-        worksheet.set_paper(9)  # Set paper size to A4
-        worksheet.fit_to_pages(1, 0)
-        for col_num, col in enumerate(component_overview_df.columns):
-            worksheet.set_column(col_num, col_num, 30, wrap_format)
+        worksheet_formater(component_overview_df, border_format, worksheet, wrap_format)
 
         # Analysis
         analysis_data = []
@@ -261,48 +251,29 @@ def save_to_excel(component_overview, file_path='HSCS Product security vulnerabi
         analysis_df = pd.DataFrame(analysis_data)
         analysis_df.to_excel(writer, sheet_name='Analysis', index=False)
         worksheet = writer.sheets['Analysis']
-        worksheet.write(1, 1, 'Unless indicated otherwise the vulnerability severity rating below is assessed using the <CVSS 3.1> scoring methodology.')
-        worksheet.set_header('&CProduct security vulnerability analysis report for HSCS')  # Centered header text
-        worksheet.set_footer(
-            '&CNote: for template information, see custom properties of this document. &RFor Internal Use Only')  # Left, Center, and Right footer text
-
-
-        worksheet.set_paper(9)  # Set paper size to A4
-        worksheet.fit_to_pages(1, 0)
-        for col_num, col in enumerate(analysis_df.columns):
-            worksheet.set_column(col_num, col_num, 30, wrap_format)
+        worksheet.merge_range('A1:L1',
+                              'Unless indicated otherwise the vulnerability severity rating below is assessed using the <CVSS 3.1> scoring methodology.',
+                              merge_format)
+        worksheet_formater(analysis_df, border_format, worksheet, wrap_format)
 
         # Document Revision History
-        revision_data =  session.get('revision_data', {})
+        revision_data = session.get('revision_data', {})
         revision = revision_data.get('revision')
         date = revision_data.get('date')
         author = revision_data.get('author')
         attendees = revision_data.get('attendees')
         crReason = revision_data.get('crReason')
-        revision_history_df = pd.DataFrame([{'Revision': revision, 'Date': date, 'Author': author, 'Attendees': attendees, 'Reason': crReason}])
+        revision_history_df = pd.DataFrame(
+            [{'Revision': revision, 'Date': date, 'Author': author, 'Attendees': attendees, 'Reason': crReason}])
         revision_history_df.to_excel(writer, sheet_name='Document Revision History', index=False)
         worksheet = writer.sheets['Document Revision History']
-        worksheet.write(1, 1, 'Document revision history')
-        worksheet.set_header('&CProduct security vulnerability analysis report for HSCS')  # Centered header text
-        worksheet.set_footer(
-            '&CNote: for template information, see custom properties of this document. &RFor Internal Use Only')  # Left, Center, and Right footer text
-
-
-        worksheet.set_paper(9)  # Set paper size to A4
-        worksheet.fit_to_pages(1, 0)
-        for col_num, col in enumerate(revision_history_df.columns):
-            worksheet.set_column(col_num, col_num, 20, wrap_format)
+        worksheet.merge_range('A1:E1', 'Document revision history', merge_format)
+        worksheet_formater(revision_history_df, border_format, worksheet, wrap_format)
 
         # Terminology & Abbreviations
-        # Define the list
         data_list = revision_data.get('terms')
-
-        # Convert the string to a list
         terms_list = ast.literal_eval(data_list)
-        # Initialize an empty dictionary
         data_dict = {'Terminology & Abbreviations': [], 'Description/Definition': []}
-
-        # Iterate over the list and split each string by the colon
         for item in terms_list:
             if ": " in item:
                 key, value = item.split(": ", 1)
@@ -311,42 +282,41 @@ def save_to_excel(component_overview, file_path='HSCS Product security vulnerabi
             else:
                 print(f"Skipping invalid item: {item}")
 
-        # Create a DataFrame from the dictionary
         abbreviations_df = pd.DataFrame(data_dict)
-        print(abbreviations_df)
-        worksheet.write(1, 1, 'Terminology & Abbreviations	')
         abbreviations_df.to_excel(writer, sheet_name='Terminology & Abbreviations', index=False)
         worksheet = writer.sheets['Terminology & Abbreviations']
-        worksheet.set_header('&CProduct security vulnerability analysis report for HSCS')  # Centered header text
-        worksheet.set_footer(
-            '&CNote: for template information, see custom properties of this document. &RFor Internal Use Only')  # Left, Center, and Right footer text
-
-
-        worksheet.set_paper(9)  # Set paper size to A4
-        worksheet.fit_to_pages(1, 0)
-        for col_num, col in enumerate(abbreviations_df.columns):
-            worksheet.set_column(col_num, col_num, 20, wrap_format)
+        worksheet.merge_range('A1:B1', 'Terminology & Abbreviations', merge_format)
+        worksheet_formater(abbreviations_df, border_format, worksheet, wrap_format)
 
         # References
         referenceNumber = revision_data.get('referenceNumber')
         documentTitle = revision_data.get('documentTitle')
         documentId = revision_data.get('documentId')
-        # Write the header row
-
         references_df = pd.DataFrame(
-            [{'Reference number': referenceNumber, 'Document title':documentTitle, 'Document ID': documentId}])
-        references_df.to_excel(writer, sheet_name='References', index=False)
-        worksheet.merge_range('A1:B1', 'References', merge_format)
+            [{'Reference number': referenceNumber, 'Document title': documentTitle, 'Document ID': documentId}]
+        )
+        references_df.to_excel(writer, sheet_name='References', startrow=1, index=False)
         worksheet = writer.sheets['References']
-        worksheet.set_header('&CProduct security vulnerability analysis report for HSCS')  # Centered header text
-        worksheet.set_footer(
-            '&CNote: for template information, see custom properties of this document. &RFor Internal Use Only')  # Left, Center, and Right footer text
+        worksheet.merge_range('A1:C1', 'References', merge_format)
+        worksheet_formater(references_df, border_format, worksheet, wrap_format)
 
 
-        worksheet.set_paper(9)  # Set paper size to A4
-        worksheet.fit_to_pages(1, 0)
-        for col_num, col in enumerate(references_df.columns):
-            worksheet.set_column(col_num, col_num, 20, wrap_format)
+def worksheet_formater(df, border_format, worksheet, wrap_format):
+    worksheet.set_header('&CProduct security vulnerability analysis report for HSCS')
+    worksheet.set_footer(
+        '&CNote: for template information, see custom properties of this document. &RFor Internal Use Only')
+    worksheet.set_paper(9)
+    worksheet.set_landscape()
+    worksheet.fit_to_pages(1, 0)
+    for col_num, col in enumerate(df.columns):
+        worksheet.set_column(col_num, col_num, 30, wrap_format)
+    for row_num in range(len(df)):
+        for col_num in range(len(df.columns)):
+            cell_value = df.iloc[row_num, col_num]
+            if isinstance(cell_value, str) and len(cell_value) > 50:  # Assuming text area cells have long text
+                worksheet.write(row_num + 1, col_num, cell_value, border_format)
+            else:
+                worksheet.write(row_num + 1, col_num, cell_value, wrap_format)
 
 
 @app.route('/save_revision_data', methods=['POST'])
@@ -366,6 +336,7 @@ def save_revision_data():
     session['revision_data'] = revision_data
     return jsonify({'status': 'success'})
 
+
 @app.route('/get_revision_data', methods=['GET'])
 def get_revision_data():
     revision_data = session.get('revision_data', {})
@@ -373,6 +344,8 @@ def get_revision_data():
         return jsonify({'status': 'success', 'revision_data': revision_data})
     else:
         return jsonify({'status': 'error', 'message': 'No data found'})
+
+
 @app.route('/config')
 def config():
     return render_template('config.html')
@@ -381,7 +354,6 @@ def config():
 @app.route('/bom')
 def bom():
     return render_template('bom.html')
-
 
 
 if __name__ == '__main__':

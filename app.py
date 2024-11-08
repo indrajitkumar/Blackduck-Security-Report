@@ -210,65 +210,13 @@ def save_to_excel(component_overview, file_path='HSCS Product security vulnerabi
         workbook = writer.book
         wrap_format = workbook.add_format({'text_wrap': True, 'align': 'justify', 'valign': 'top'})
         merge_format = workbook.add_format({'align': 'center', 'valign': 'vcenter', 'bold': True})
-        border_format = workbook.add_format({'border': 1})
 
-        # Title Page
-        title_page_data = []
-        for item in tab1_content:
-            title_page_data.append(item['Content'])
+        title_sheet(tab1_content, workbook, writer)
+        component_overview_sheet(component_overview, workbook, writer)
 
-        title_page_df = pd.DataFrame(title_page_data, columns=['Purpose'])
-        title_page_df.to_excel(writer, sheet_name='Title Page', index=False)
-        worksheet = writer.sheets['Title Page']
-        worksheet_formater(title_page_df, border_format, worksheet, wrap_format)
+        analysis_sheet(component_overview, workbook, merge_format, writer)
 
-        # Component Overview
-        component_overview_df = pd.DataFrame(
-            [{k: v for k, v in item.items() if k != 'componentVersion'} for item in component_overview])
-        component_overview_df.to_excel(writer, sheet_name='Component Overview', index=False)
-        worksheet = writer.sheets['Component Overview']
-        worksheet_formater(component_overview_df, border_format, worksheet, wrap_format)
-
-        # Analysis
-        analysis_data = []
-        for item in component_overview:
-            for version in item['componentVersion']:
-                analysis_data.append({
-                    'Review date (YYYY-MM-DD)': version['vulnerabilityUpdatedDate'],
-                    'Component name': item['componentName'],
-                    'Component version': item['componentVersionName'],
-                    'Vulnerability ID (e.g. CVE)': version['vulnerabilityName'],
-                    'Description': version['description'],
-                    'Base score': version['baseScore'],
-                    'Exploitability': version['exploitabilitySubscore'],
-                    'Impact': version['impactSubscore'],
-                    'Remediation status': version.get('remediationStatus', ''),
-                    'Remediation comment': version.get('remediationComment', ''),
-                    'Severity rating': version['severity'],
-                    'Update PSSD?': 'No',
-                    'Manage Defect requested?': 'No'
-                })
-        analysis_df = pd.DataFrame(analysis_data)
-        analysis_df.to_excel(writer, sheet_name='Analysis', index=False)
-        worksheet = writer.sheets['Analysis']
-        worksheet.merge_range('A1:L1',
-                              'Unless indicated otherwise the vulnerability severity rating below is assessed using the <CVSS 3.1> scoring methodology.',
-                              merge_format)
-        worksheet_formater(analysis_df, border_format, worksheet, wrap_format)
-
-        # Document Revision History
-        revision_data = session.get('revision_data', {})
-        revision = revision_data.get('revision')
-        date = revision_data.get('date')
-        author = revision_data.get('author')
-        attendees = revision_data.get('attendees')
-        crReason = revision_data.get('crReason')
-        revision_history_df = pd.DataFrame(
-            [{'Revision': revision, 'Date': date, 'Author': author, 'Attendees': attendees, 'Reason': crReason}])
-        revision_history_df.to_excel(writer, sheet_name='Document Revision History', index=False)
-        worksheet = writer.sheets['Document Revision History']
-        worksheet.merge_range('A1:E1', 'Document revision history', merge_format)
-        worksheet_formater(revision_history_df, border_format, worksheet, wrap_format)
+        revision_data = revision_history_sheet(merge_format, writer)
 
         # Terminology & Abbreviations
         data_list = revision_data.get('terms')
@@ -286,7 +234,7 @@ def save_to_excel(component_overview, file_path='HSCS Product security vulnerabi
         abbreviations_df.to_excel(writer, sheet_name='Terminology & Abbreviations', index=False)
         worksheet = writer.sheets['Terminology & Abbreviations']
         worksheet.merge_range('A1:B1', 'Terminology & Abbreviations', merge_format)
-        worksheet_formater(abbreviations_df, border_format, worksheet, wrap_format)
+        worksheet_formater(worksheet)
 
         # References
         referenceNumber = revision_data.get('referenceNumber')
@@ -298,26 +246,101 @@ def save_to_excel(component_overview, file_path='HSCS Product security vulnerabi
         references_df.to_excel(writer, sheet_name='References', startrow=1, index=False)
         worksheet = writer.sheets['References']
         worksheet.merge_range('A1:C1', 'References', merge_format)
-        worksheet_formater(references_df, border_format, worksheet, wrap_format)
+        worksheet_formater(worksheet)
 
 
-def worksheet_formater(df, border_format, worksheet, wrap_format):
+def revision_history_sheet(merge_format, writer):
+    # Document Revision History
+    revision_data = session.get('revision_data', {})
+    revision = revision_data.get('revision')
+    date = revision_data.get('date')
+    author = revision_data.get('author')
+    attendees = revision_data.get('attendees')
+    crReason = revision_data.get('crReason')
+    revision_history_df = pd.DataFrame(
+        [{'Revision': revision, 'Date': date, 'Author': author, 'Attendees': attendees, 'Reason': crReason}])
+    revision_history_df.to_excel(writer, sheet_name='Document Revision History', index=False)
+    worksheet = writer.sheets['Document Revision History']
+    worksheet.merge_range('A1:E1', 'Document revision history', merge_format)
+    worksheet_formater(worksheet)
+    return revision_data
+
+
+def analysis_sheet(component_overview, workbook, merge_format, writer):
+    # Analysis
+    analysis_data = []
+    for item in component_overview:
+        for version in item['componentVersion']:
+            analysis_data.append({
+                'Review date (YYYY-MM-DD)': version['vulnerabilityUpdatedDate'],
+                'Component name': item['componentName'],
+                'Component version': item['componentVersionName'],
+                'Vulnerability ID (e.g. CVE)': version['vulnerabilityName'],
+                'Description': version['description'],
+                'Base score': version['baseScore'],
+                'Exploitability': version['exploitabilitySubscore'],
+                'Impact': version['impactSubscore'],
+                'Remediation status': version.get('remediationStatus', ''),
+                'Remediation comment': version.get('remediationComment', ''),
+                'Severity rating': version['severity'],
+                'Update PSSD?': 'No',
+                'Manage Defect requested?': 'No'
+            })
+    analysis_df = pd.DataFrame(analysis_data)
+    analysis_df.to_excel(writer, sheet_name='Analysis', index=False)
+    worksheet = writer.sheets['Analysis']
+    # worksheet.merge_range('A1:L1',
+    #                       'Unless indicated otherwise the vulnerability severity rating below is assessed using the <CVSS 3.1> scoring methodology.',
+    #                       workbook.add_format({'align': 'left'}))
+
+
+    # Apply wrap format to header names
+    header_format = workbook.add_format({'text_wrap': True, 'bold': True, 'align': 'center', 'valign': 'vcenter'})
+    for col_num, col in enumerate(analysis_df.columns):
+        worksheet.write(0, col_num, col, header_format)
+        if col == 'Description' or col == 'Remediation comment':
+            worksheet.set_column(col_num, col_num, 80, workbook.add_format({'text_wrap': True}))
+        elif col == 'Vulnerability ID (e.g. CVE)':
+            worksheet.set_column(col_num, col_num, 16)
+        else:
+            worksheet.set_column(col_num, col_num, 12, workbook.add_format({'text_wrap': True}))
+    worksheet_formater(worksheet)
+
+
+def component_overview_sheet(component_overview, workbook, writer):
+    # Component Overview
+    component_overview_df = pd.DataFrame(
+        [{k: v for k, v in item.items() if k != 'componentVersion'} for item in component_overview])
+    component_overview_df.to_excel(writer, sheet_name='Component Overview', index=False)
+    worksheet = writer.sheets['Component Overview']
+    for col_num, col in enumerate(component_overview_df.columns):
+        if col == 'componentDescription':
+            worksheet.set_column(col_num, col_num, 80, workbook.add_format({'text_wrap': True}))
+        elif col == 'componentName':
+            worksheet.set_column(col_num, col_num, 20)
+        else:
+            worksheet.set_column(col_num, col_num, 10)
+    worksheet_formater(worksheet)
+
+
+def title_sheet(tab1_content, workbook, writer):
+    # Title Page
+    title_page_data = []
+    for item in tab1_content:
+        title_page_data.append(item['Content'])
+    title_page_df = pd.DataFrame(title_page_data, columns=['Purpose'])
+    title_page_df.to_excel(writer, sheet_name='Title Page', index=False)
+    worksheet = writer.sheets['Title Page']
+    worksheet_formater(worksheet)
+    worksheet.set_column('A:A', 120, workbook.add_format({'text_wrap': True, 'align': 'justify', 'valign': 'top'}))
+
+
+def worksheet_formater(worksheet):
     worksheet.set_header('&CProduct security vulnerability analysis report for HSCS')
     worksheet.set_footer(
         '&CNote: for template information, see custom properties of this document. &RFor Internal Use Only')
     worksheet.set_paper(9)
-    worksheet.set_landscape()
     worksheet.fit_to_pages(1, 0)
-    for col_num, col in enumerate(df.columns):
-        worksheet.set_column(col_num, col_num, 30, wrap_format)
-    for row_num in range(len(df)):
-        for col_num in range(len(df.columns)):
-            cell_value = df.iloc[row_num, col_num]
-            if isinstance(cell_value, str) and len(cell_value) > 50:  # Assuming text area cells have long text
-                worksheet.write(row_num + 1, col_num, cell_value, border_format)
-            else:
-                worksheet.write(row_num + 1, col_num, cell_value, wrap_format)
-
 
 @app.route('/save_revision_data', methods=['POST'])
 def save_revision_data():

@@ -211,30 +211,14 @@ def save_to_excel(component_overview, file_path='HSCS Product security vulnerabi
         wrap_format = workbook.add_format({'text_wrap': True, 'align': 'justify', 'valign': 'top'})
         merge_format = workbook.add_format({'align': 'center', 'valign': 'vcenter', 'bold': True})
 
+        revision_data = session.get('revision_data', {})
+        # Sheet construction
         title_sheet(tab1_content, workbook, writer)
         component_overview_sheet(component_overview, workbook, writer)
-
         analysis_sheet(component_overview, workbook, merge_format, writer)
+        revision_history_sheet(merge_format, writer, revision_data)
 
-        revision_data = revision_history_sheet(merge_format, writer)
-
-        # Terminology & Abbreviations
-        data_list = revision_data.get('terms')
-        terms_list = ast.literal_eval(data_list)
-        data_dict = {'Terminology & Abbreviations': [], 'Description/Definition': []}
-        for item in terms_list:
-            if ": " in item:
-                key, value = item.split(": ", 1)
-                data_dict['Terminology & Abbreviations'].append(key)
-                data_dict['Description/Definition'].append(value)
-            else:
-                print(f"Skipping invalid item: {item}")
-
-        abbreviations_df = pd.DataFrame(data_dict)
-        abbreviations_df.to_excel(writer, sheet_name='Terminology & Abbreviations', index=False)
-        worksheet = writer.sheets['Terminology & Abbreviations']
-        worksheet.merge_range('A1:B1', 'Terminology & Abbreviations', merge_format)
-        worksheet_formater(worksheet)
+        termabbrev_sheet(merge_format, revision_data, writer)
 
         # References
         referenceNumber = revision_data.get('referenceNumber')
@@ -249,9 +233,27 @@ def save_to_excel(component_overview, file_path='HSCS Product security vulnerabi
         worksheet_formater(worksheet)
 
 
-def revision_history_sheet(merge_format, writer):
+def termabbrev_sheet(merge_format, revision_data, writer):
+    # Terminology & Abbreviations
+    data_list = revision_data.get('terms')
+    terms_list = ast.literal_eval(data_list)
+    data_dict = {'Terminology & Abbreviations': [], 'Description/Definition': []}
+    for item in terms_list:
+        if ": " in item:
+            key, value = item.split(": ", 1)
+            data_dict['Terminology & Abbreviations'].append(key)
+            data_dict['Description/Definition'].append(value)
+        else:
+            print(f"Skipping invalid item: {item}")
+    abbreviations_df = pd.DataFrame(data_dict)
+    abbreviations_df.to_excel(writer, sheet_name='Terminology & Abbreviations', index=False)
+    worksheet = writer.sheets['Terminology & Abbreviations']
+    #worksheet.merge_range('A1:B1', 'Terminology & Abbreviations', merge_format)
+    worksheet_formater(worksheet)
+
+
+def revision_history_sheet(merge_format, writer, revision_data):
     # Document Revision History
-    revision_data = session.get('revision_data', {})
     revision = revision_data.get('revision')
     date = revision_data.get('date')
     author = revision_data.get('author')
@@ -263,7 +265,6 @@ def revision_history_sheet(merge_format, writer):
     worksheet = writer.sheets['Document Revision History']
     worksheet.merge_range('A1:E1', 'Document revision history', merge_format)
     worksheet_formater(worksheet)
-    return revision_data
 
 
 def analysis_sheet(component_overview, workbook, merge_format, writer):

@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from flask import Flask, render_template, request, redirect, url_for, flash, session, send_file, jsonify
 from bs4 import BeautifulSoup
 import requests
@@ -211,29 +213,38 @@ def save_to_excel(component_overview, file_path='HSCS Product security vulnerabi
         wrap_format = workbook.add_format({'text_wrap': True, 'align': 'justify', 'valign': 'top'})
         merge_format = workbook.add_format({'align': 'center', 'valign': 'vcenter', 'bold': True})
 
-        revision_data = session.get('revision_data', {})
-        # Sheet construction
         title_sheet(tab1_content, workbook, writer)
         component_overview_sheet(component_overview, workbook, writer)
-        analysis_sheet(component_overview, workbook, merge_format, writer)
-        revision_history_sheet(merge_format, writer, revision_data)
 
-        termabbrev_sheet(merge_format, revision_data, writer)
+        analysis_sheet(component_overview, workbook, writer)
 
-        # References
-        referenceNumber = revision_data.get('referenceNumber')
-        documentTitle = revision_data.get('documentTitle')
-        documentId = revision_data.get('documentId')
-        references_df = pd.DataFrame(
-            [{'Reference number': referenceNumber, 'Document title': documentTitle, 'Document ID': documentId}]
-        )
-        references_df.to_excel(writer, sheet_name='References', startrow=1, index=False)
-        worksheet = writer.sheets['References']
-        worksheet.merge_range('A1:C1', 'References', merge_format)
-        worksheet_formater(worksheet)
+        revision_data = revision_history_sheet(workbook, writer)
+
+        terminology_sheet(workbook, revision_data, writer)
+
+        references_sheet(workbook, revision_data, writer)
 
 
-def termabbrev_sheet(merge_format, revision_data, writer):
+def references_sheet(workbook, revision_data, writer):
+    # References
+    referenceNumber = revision_data.get('referenceNumber')
+    documentTitle = revision_data.get('documentTitle')
+    documentId = revision_data.get('documentId')
+    references_df = pd.DataFrame(
+        [{'Reference number': referenceNumber, 'Document title': documentTitle, 'Document ID': documentId}]
+    )
+    references_df.to_excel(writer, sheet_name='References', startrow=1, index=False)
+    worksheet = writer.sheets['References']
+    header_format = workbook.add_format({'text_wrap': True, 'bold': True, 'align': 'left', 'valign': 'vcenter'})
+    worksheet.write('A1', 'References',
+                    workbook.add_format({'align': 'left', 'valign': 'vcenter', 'bold': True, 'font_size': 14}))
+    for col_num, col in enumerate(references_df.columns):
+        worksheet.write(1, col_num, col, header_format)
+        worksheet.set_column(col_num, col_num, 30, workbook.add_format({'text_wrap': True}))
+    worksheet_formater(worksheet)
+
+
+def terminology_sheet(workbook, revision_data, writer):
     # Terminology & Abbreviations
     data_list = revision_data.get('terms')
     terms_list = ast.literal_eval(data_list)
@@ -246,34 +257,48 @@ def termabbrev_sheet(merge_format, revision_data, writer):
         else:
             print(f"Skipping invalid item: {item}")
     abbreviations_df = pd.DataFrame(data_dict)
-    abbreviations_df.to_excel(writer, sheet_name='Terminology & Abbreviations', index=False)
+    abbreviations_df.to_excel(writer, sheet_name='Terminology & Abbreviations', startrow=1, index=False)
     worksheet = writer.sheets['Terminology & Abbreviations']
-    #worksheet.merge_range('A1:B1', 'Terminology & Abbreviations', merge_format)
+    worksheet.write('A1', 'Terminology & Abbreviations',
+                    workbook.add_format({'align': 'left', 'valign': 'vcenter', 'bold': True, 'font_size': 14}))
+    header_format = workbook.add_format({'text_wrap': True, 'bold': True, 'align': 'left', 'valign': 'vcenter'})
+    for col_num, col in enumerate(abbreviations_df.columns):
+        worksheet.write(1, col_num, col, header_format)
+        worksheet.set_column(col_num, col_num, 30, workbook.add_format({'text_wrap': True}))
     worksheet_formater(worksheet)
 
 
-def revision_history_sheet(merge_format, writer, revision_data):
+def revision_history_sheet(workbook, writer):
     # Document Revision History
+    revision_data = session.get('revision_data', {})
     revision = revision_data.get('revision')
     date = revision_data.get('date')
     author = revision_data.get('author')
     attendees = revision_data.get('attendees')
     crReason = revision_data.get('crReason')
     revision_history_df = pd.DataFrame(
-        [{'Revision': revision, 'Date': date, 'Author': author, 'Attendees': attendees, 'Reason': crReason}])
-    revision_history_df.to_excel(writer, sheet_name='Document Revision History', index=False)
+        [{'Revision': revision, 'Revision Date': date, 'Author': author, 'Attendees': attendees, 'Reason': crReason}])
+    revision_history_df.to_excel(writer, sheet_name='Document Revision History', startrow=1, index=False)
     worksheet = writer.sheets['Document Revision History']
-    worksheet.merge_range('A1:E1', 'Document revision history', merge_format)
+    worksheet.write('A1', 'Document revision history',
+                    workbook.add_format({'align': 'left', 'valign': 'vcenter', 'bold': True, 'font_size': 16}))
+    header_format = workbook.add_format({'text_wrap': True, 'bold': True, 'align': 'left', 'valign': 'vcenter'})
+
+    for col_num, col in enumerate(revision_history_df.columns):
+        worksheet.write(1, col_num, col, header_format)
+        worksheet.set_column(col_num, col_num, 30, workbook.add_format({'text_wrap': True}))
     worksheet_formater(worksheet)
+    return revision_data
 
 
-def analysis_sheet(component_overview, workbook, merge_format, writer):
+def analysis_sheet(component_overview, workbook, writer):
     # Analysis
     analysis_data = []
     for item in component_overview:
         for version in item['componentVersion']:
             analysis_data.append({
-                'Review date (YYYY-MM-DD)': version['vulnerabilityUpdatedDate'],
+                'Review date (YYYY-MM-DD)': datetime.strptime(version['vulnerabilityUpdatedDate'],
+                                                              '%Y-%m-%dT%H:%M:%S.%fZ').date(),
                 'Component name': item['componentName'],
                 'Component version': item['componentVersionName'],
                 'Vulnerability ID (e.g. CVE)': version['vulnerabilityName'],
@@ -288,17 +313,15 @@ def analysis_sheet(component_overview, workbook, merge_format, writer):
                 'Manage Defect requested?': 'No'
             })
     analysis_df = pd.DataFrame(analysis_data)
-    analysis_df.to_excel(writer, sheet_name='Analysis', index=False)
+    analysis_df.to_excel(writer, sheet_name='Analysis', startrow=1, index=False)
     worksheet = writer.sheets['Analysis']
-    # worksheet.merge_range('A1:L1',
-    #                       'Unless indicated otherwise the vulnerability severity rating below is assessed using the <CVSS 3.1> scoring methodology.',
-    #                       workbook.add_format({'align': 'left'}))
-
-
+    worksheet.write('A1',
+                    'Unless indicated otherwise the vulnerability severity rating below is assessed using the <CVSS 3.1> scoring methodology.',
+                    workbook.add_format({'align': 'left', 'valign': 'vcenter'}))
     # Apply wrap format to header names
-    header_format = workbook.add_format({'text_wrap': True, 'bold': True, 'align': 'center', 'valign': 'vcenter'})
+    header_format = workbook.add_format({'text_wrap': True, 'bold': True, 'align': 'left', 'valign': 'vcenter'})
     for col_num, col in enumerate(analysis_df.columns):
-        worksheet.write(0, col_num, col, header_format)
+        worksheet.write(1, col_num, col, header_format)
         if col == 'Description' or col == 'Remediation comment':
             worksheet.set_column(col_num, col_num, 80, workbook.add_format({'text_wrap': True}))
         elif col == 'Vulnerability ID (e.g. CVE)':
@@ -333,7 +356,7 @@ def title_sheet(tab1_content, workbook, writer):
     title_page_df.to_excel(writer, sheet_name='Title Page', index=False)
     worksheet = writer.sheets['Title Page']
     worksheet_formater(worksheet)
-    worksheet.set_column('A:A', 120, workbook.add_format({'text_wrap': True, 'align': 'justify', 'valign': 'top'}))
+    worksheet.set_column('A:A', 120, workbook.add_format({'text_wrap': True, 'align': 'left', 'valign': 'top'}))
 
 
 def worksheet_formater(worksheet):
@@ -342,6 +365,7 @@ def worksheet_formater(worksheet):
         '&CNote: for template information, see custom properties of this document. &RFor Internal Use Only')
     worksheet.set_paper(9)
     worksheet.fit_to_pages(1, 0)
+
 
 @app.route('/save_revision_data', methods=['POST'])
 def save_revision_data():

@@ -192,7 +192,7 @@ def generate_excel_report(project_id):
         for section in soup.find_all(['h2', 'p']):
             parsed_tab1_content.append({
                 'Tag': section.name,
-                'Content': section.get_text(strip=True)
+                'Content': section.get_text(strip=False)
             })
 
         # Ensure the download directory exists

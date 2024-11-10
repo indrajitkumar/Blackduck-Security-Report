@@ -335,15 +335,18 @@ def component_overview_sheet(component_overview, workbook, writer):
     # Component Overview
     component_overview_df = pd.DataFrame(
         [{k: v for k, v in item.items() if k != 'componentVersion'} for item in component_overview])
+    component_overview_df.rename(columns={'componentVersionName': 'Component Version','componentName':'Component Name', 'componentDescription':'Component Description'}, inplace=True)
+
+
     component_overview_df.to_excel(writer, sheet_name='Component Overview', index=False)
     worksheet = writer.sheets['Component Overview']
     for col_num, col in enumerate(component_overview_df.columns):
-        if col == 'componentDescription':
+        if col == 'Component Description':
             worksheet.set_column(col_num, col_num, 80, workbook.add_format({'text_wrap': True}))
-        elif col == 'componentName':
+        elif col == 'Component Name':
             worksheet.set_column(col_num, col_num, 20)
         else:
-            worksheet.set_column(col_num, col_num, 10)
+            worksheet.set_column(col_num, col_num, 20)
     worksheet_formater(worksheet)
 
 

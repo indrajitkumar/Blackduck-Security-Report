@@ -58,86 +58,72 @@
                 <button type="button" class="btn btn-primary" onclick="generateExcelReport()">Generate Excel Report</button>
             </div>
 
-                    <div id="tab1" class="tab active">
-                        <h2>Purpose</h2>
-                        <p>"This document is used to report the product security analysis of vulnerabilities in software and hardware
-                            elements and parts (components), which are used in <span id="placeholder1">___________________</span>. This
-                            report is established
-                            during design to capture remaining vulnerabilities. As new security issues including vulnerabilities are
-                            continuously identified in software and hardware components, this report must be maintained during the
-                            entire
-                            lifecycle until End-of-Support, as part of post market obligations for both medical as well as non-medical
-                            products.
-                            This document demonstrates the continuous analysis of security issues and new vulnerabilities and serves as
-                            a
-                            trigger for follow-up actions and as an input into the higher-level product security risk assessment to
-                            further
-                            assess specific vulnerabilities and/or a set of aggregated vulnerabilities within specific components.
-                            This report uses the Software bill of materials (SBOM) document [REF-1] as one of its inputs. It captures
-                            the
-                            product-related vulnerability information, which originates from many sources such as information supplied
-                            by
-                            third party sources." </p>
+    <div id="tab1" class="tab active">
+        <h2>Purpose</h2>
+        <p>This document is used to report the product security analysis of vulnerabilities in software and hardware elements and parts (components), which are used in <span id="placeholder">___________________</span>. This report is established during design to capture remaining vulnerabilities. As new security issues including vulnerabilities are continuously identified in software and hardware components, this report must be maintained during the entire lifecycle until End-of-Support, as part of post market obligations for both medical as well as non-medical products.
 
-                        <h2>Scope</h2>
-                        <p>"This document is applicable to all software and hardware components used in <span id="placeholder">___________________</span>
-                    </div>
-                    <div id="tab2" class="tab">
-                        <h2>Component Overview</h2>
-                        <table id="projectDataTable" class="table table-striped">
-                            <thead>
-                            <tr>
-                                <th>Component name</th>
-                                <th>Component version</th>
-                                <th>Description</th>
-                                <th>Support Status</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <!-- Data will be populated here -->
-                            </tbody>
-                        </table>
-                    </div>
-                    <div id="tab3" class="tab">
-                        <h2>Analysis</h2>
-                        <table id="projectDataTable1" class="table table-striped">
-                            <thead>
-                            <tr>
-                                <th>Review date (YYYY-MM-DD)</th>
-                                <th>Component name</th>
-                                <th>Component version</th>
-                                <th>Vulnerability ID (e.g. CVE)</th>
-                                <th>Description</th>
-                                <th>Base score</th>
-                                <th>Exploitability</th>
-                                <th>Impact</th>
-                                <th>Remediation status</th>
-                                <th>Remediation comment</th>
-                                <th>Severity rating</th>
-                                <th>Update PSSD?</th>
-                                <th>Manage Defect requested?</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <!-- Data will be populated here -->
-                            </tbody>
-                        </table>
-                    </div>
-                    <div id="tab4" class="tab">
-                        <h2>Document Revision History</h2>
-                        <div id="revisionDataContainer">
-                        </div>
-                    </div>
-                    <div id="tab5" class="tab">
-                        <h2>Terminology & Abbreviations</h2>
-                        <div id="termListDataContainer">
-                        </div>
-                    </div>
-                    <div id="tab6" class="tab">
-                        <h2>References</h2>
-                        <div id="referencesDataContainer">
-                        </div>
-                    </div>
+This document demonstrates the continuous analysis of security issues and new vulnerabilities and serves as a trigger for follow-up actions and as an input into the higher-level product security risk assessment to further assess specific vulnerabilities and/or a set of aggregated vulnerabilities within specific components.
+
+This report uses the Software bill of materials (SBOM) document [REF-1] as one of its inputs. It captures the product-related vulnerability information, which originates from many sources such as information supplied by third party sources.</p>
+        <h2>Scope</h2>
+        <p>"This document is applicable to all software and hardware components used in <span id="placeholder">___________________</span>.
+    </div>
+    <div id="tab2" class="tab">
+        <h2>Component Overview</h2>
+        <table id="projectDataTable">
+            <thead>
+            <tr>
+                <th>Component name</th>
+                <th>Component version</th>
+                <th>Description</th>
+                <th>Support Status</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!-- Data will be populated here -->
+            </tbody>
+        </table>
+    </div>
+    <div id="tab3" class="tab">
+        <h2>Analysis</h2>
+        <table id="projectDataTable1">
+            <thead>
+            <tr>
+                <th>Review date (YYYY-MM-DD)</th>
+                <th>Component name</th>
+                <th>Component version</th>
+                <th>Vulnerability ID (e.g. CVE)</th>
+                <th>Description</th>
+                <th>Base score</th>
+                <th>Exploitability</th>
+                <th>Impact</th>
+                <th>Remediation status</th>
+                <th>Remediation comment</th>
+                <th>Severity rating</th>
+                <th>Update PSSD?</th>
+                <th>Manage Defect requested?</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!-- Data will be populated here -->
+            </tbody>
+        </table>
+    </div>
+    <div id="tab4" class="tab">
+        <h2>Document Revision History</h2>
+        <div id="revisionDataContainer">
+        </div>
+    </div>
+    <div id="tab5" class="tab">
+        <h2>Terminology & Abbreviations</h2>
+        <div id="termListDataContainer">
+        </div>
+    </div>
+    <div id="tab6" class="tab">
+        <h2>References</h2>
+        <div id="referencesDataContainer">
+        </div>
+    </div>
 
                     <div class="footer mt-4">
                         <p>&copy; 2024 PHDSI - HSCS. All rights reserved.</p>
@@ -193,12 +179,12 @@
             let componentVersion = document.createElement('td');
             let componentDescription = document.createElement('td');
             let supportStatus = document.createElement('td');
-            let supportStatusTextArea = document.createElement('textarea');
+            let supportStatusTextArea = document.createElement('td');
 
             componentName.textContent = item.componentName;
             componentVersion.textContent = item.componentVersionName;
             componentDescription.textContent = item.componentDescription;
-            supportStatusTextArea.value = item.supportStatus || '';
+            supportStatusTextArea.textContent = 'Manual analysis done and there are no operational risks identified';
 
             supportStatus.appendChild(supportStatusTextArea);
             row.appendChild(componentName);
@@ -224,7 +210,7 @@
                 let updatePSSD = document.createElement('td');
                 let manageDefect = document.createElement('td');
 
-                vulnerabilityUpdatedDate.textContent = version.vulnerabilityUpdatedDate;
+                vulnerabilityUpdatedDate.textContent = version.vulnerabilityUpdatedDate.split('T')[0];
                 componentName.textContent = item.componentName;
                 componentVersion.textContent = item.componentVersionName;
                 vulnerabilityName.textContent = version.vulnerabilityName;
@@ -233,7 +219,7 @@
                 exploitability.textContent = version.exploitabilitySubscore;
                 impact.textContent = version.impactSubscore;
                 remediationStatus.value = version.remediationStatus;
-                remediationComment.value = version.remediationComment || '';
+                remediationComment.value =  'Please update yourself in report';
                 severityRating.textContent = version.severity;
                 updatePSSD.textContent = "No";
                 manageDefect.textContent = "No";
@@ -268,7 +254,7 @@
         loader.style.display = 'block';
 
         let selectedProjectId = document.getElementById('projects').value;
-        let tab1Content = document.getElementById('tab1').innerHTML;
+        let tab1Content = document.getElementById('tab1').outerHTML;
 
         fetch(`/generate_excel_report/${selectedProjectId}`, {
             method: 'POST',

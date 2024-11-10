@@ -244,7 +244,7 @@ This report uses the Software bill of materials (SBOM) document [REF-1] as one o
         loader.style.display = 'block';
 
         let selectedProjectId = document.getElementById('projects').value;
-        let tab1Content = document.getElementById('tab1').outerHTML;
+        let tab1Content = document.getElementById('tab1').innerHTML;
 
         fetch(`/generate_excel_report/${selectedProjectId}`, {
             method: 'POST',

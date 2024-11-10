@@ -170,12 +170,12 @@ This report uses the Software bill of materials (SBOM) document [REF-1] as one o
             let componentVersion = document.createElement('td');
             let componentDescription = document.createElement('td');
             let supportStatus = document.createElement('td');
-            let supportStatusTextArea = document.createElement('textarea');
+            let supportStatusTextArea = document.createElement('td');
 
             componentName.textContent = item.componentName;
             componentVersion.textContent = item.componentVersionName;
             componentDescription.textContent = item.componentDescription;
-            supportStatusTextArea.value = item.supportStatus || '';
+            supportStatusTextArea.textContent = 'Manual analysis done and there are no operational risks identified';
 
             supportStatus.appendChild(supportStatusTextArea);
             row.appendChild(componentName);
@@ -201,7 +201,7 @@ This report uses the Software bill of materials (SBOM) document [REF-1] as one o
                 let updatePSSD = document.createElement('td');
                 let manageDefect = document.createElement('td');
 
-                vulnerabilityUpdatedDate.textContent = version.vulnerabilityUpdatedDate;
+                vulnerabilityUpdatedDate.textContent = version.vulnerabilityUpdatedDate.split('T')[0];
                 componentName.textContent = item.componentName;
                 componentVersion.textContent = item.componentVersionName;
                 vulnerabilityName.textContent = version.vulnerabilityName;
@@ -210,7 +210,7 @@ This report uses the Software bill of materials (SBOM) document [REF-1] as one o
                 exploitability.textContent = version.exploitabilitySubscore;
                 impact.textContent = version.impactSubscore;
                 remediationStatus.value = version.remediationStatus;
-                remediationComment.value = version.remediationComment || '';
+                remediationComment.value =  'Please update yourself in report';
                 severityRating.textContent = version.severity;
                 updatePSSD.textContent = "No";
                 manageDefect.textContent = "No";

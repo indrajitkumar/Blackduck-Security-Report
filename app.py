@@ -1,11 +1,12 @@
-from datetime import datetime
-
-from flask import Flask, render_template, request, redirect, url_for, flash, session, send_file, jsonify
-from bs4 import BeautifulSoup
-import requests
-import pandas as pd
-import os
 import ast
+import os
+from datetime import datetime
+from xml.sax.handler import version
+
+import pandas as pd
+import requests
+from bs4 import BeautifulSoup
+from flask import Flask, render_template, request, redirect, url_for, flash, session, send_file, jsonify
 
 # Create Flask app instance
 app = Flask(__name__)
@@ -210,8 +211,6 @@ def save_to_excel(component_overview, file_path='HSCS Product security vulnerabi
                   tab1_content=[]):
     with pd.ExcelWriter(file_path, engine='xlsxwriter') as writer:
         workbook = writer.book
-        wrap_format = workbook.add_format({'text_wrap': True, 'align': 'justify', 'valign': 'top'})
-        merge_format = workbook.add_format({'align': 'center', 'valign': 'vcenter', 'bold': True})
 
         title_sheet(tab1_content, workbook, writer)
         component_overview_sheet(component_overview, workbook, writer)
@@ -223,6 +222,7 @@ def save_to_excel(component_overview, file_path='HSCS Product security vulnerabi
         terminology_sheet(workbook, revision_data, writer)
 
         references_sheet(workbook, revision_data, writer)
+        # workbook.close()
 
 
 def references_sheet(workbook, revision_data, writer):
@@ -294,11 +294,12 @@ def revision_history_sheet(workbook, writer):
 def analysis_sheet(component_overview, workbook, writer):
     # Analysis
     analysis_data = []
+
     for item in component_overview:
         for version in item['componentVersion']:
+            date_ = version['vulnerabilityUpdatedDate'].split('T')[0]
             analysis_data.append({
-                'Review date (YYYY-MM-DD)': datetime.strptime(version['vulnerabilityUpdatedDate'],
-                                                              '%Y-%m-%dT%H:%M:%S.%fZ').date(),
+                'Review date (YYYY-MM-DD)': date_,
                 'Component name': item['componentName'],
                 'Component version': item['componentVersionName'],
                 'Vulnerability ID (e.g. CVE)': version['vulnerabilityName'],
@@ -307,7 +308,7 @@ def analysis_sheet(component_overview, workbook, writer):
                 'Exploitability': version['exploitabilitySubscore'],
                 'Impact': version['impactSubscore'],
                 'Remediation status': version.get('remediationStatus', ''),
-                'Remediation comment': version.get('remediationComment', ''),
+                'Remediation comment': join_remediation_comment(item['componentName'], version['severity']),
                 'Severity rating': version['severity'],
                 'Update PSSD?': 'No',
                 'Manage Defect requested?': 'No'
@@ -317,18 +318,31 @@ def analysis_sheet(component_overview, workbook, writer):
     worksheet = writer.sheets['Analysis']
     worksheet.write('A1',
                     'Unless indicated otherwise the vulnerability severity rating below is assessed using the <CVSS 3.1> scoring methodology.',
-                    workbook.add_format({'align': 'left', 'valign': 'vcenter'}))
+                    workbook.add_format({'align': 'left', 'valign': 'top'}))
+
     # Apply wrap format to header names
-    header_format = workbook.add_format({'text_wrap': True, 'bold': True, 'align': 'left', 'valign': 'vcenter'})
+    header_format = workbook.add_format({'text_wrap': True, 'bold': True, 'align': 'left', 'valign': 'top'})
+    worksheet_formater(worksheet)
     for col_num, col in enumerate(analysis_df.columns):
         worksheet.write(1, col_num, col, header_format)
         if col == 'Description' or col == 'Remediation comment':
-            worksheet.set_column(col_num, col_num, 80, workbook.add_format({'text_wrap': True}))
+            worksheet.set_column(col_num, col_num, 80,
+                                 workbook.add_format({'text_wrap': True, 'align': 'left', 'valign': 'top'}))
         elif col == 'Vulnerability ID (e.g. CVE)':
-            worksheet.set_column(col_num, col_num, 16)
+            worksheet.set_column(col_num, col_num, 16,
+                                 workbook.add_format({'text_wrap': True, 'align': 'left', 'valign': 'top'}))
         else:
-            worksheet.set_column(col_num, col_num, 12, workbook.add_format({'text_wrap': True}))
-    worksheet_formater(worksheet)
+            worksheet.set_column(col_num, col_num, 12,
+                                 workbook.add_format({'text_wrap': True, 'align': 'left', 'valign': 'top'}))
+
+
+
+def join_remediation_comment(versionName, severity):
+    a = f"a) Technical Impact on Production environment/Client: \n\n The OSS risks identified is {severity} risks and it is part of the base docker image. \n\n{versionName} component is not directly exposed to the internet and is not accessible by the end user. The component is used as a part of the application and is not directly accessible by the end user.\n\n\n"
+    b = "\n\n\nb) Why we are not addressing now: \n\nApplication is using the alpine base image from official docker registry. The component will be upgraded once the non-vulnerable image is available in docker hub in future release."
+    c = "\n\n\nc) When we are addressing:\n\nPlan is to address this risk in the next release HSCS DataCore 4.7.0.0"
+
+    return a + b + c
 
 
 def component_overview_sheet(component_overview, workbook, writer):
@@ -339,6 +353,8 @@ def component_overview_sheet(component_overview, workbook, writer):
         columns={'componentVersionName': 'Component Version', 'componentName': 'Component Name',
                  'componentDescription': 'Component Description'}, inplace=True)
 
+    component_overview_df['Support Status'] = "Manual analysis done and there are no operational risks identified"
+
     component_overview_df.to_excel(writer, sheet_name='Component Overview', index=False)
     worksheet = writer.sheets['Component Overview']
     for col_num, col in enumerate(component_overview_df.columns):
@@ -346,6 +362,8 @@ def component_overview_sheet(component_overview, workbook, writer):
             worksheet.set_column(col_num, col_num, 80, workbook.add_format({'text_wrap': True}))
         elif col == 'Component Name':
             worksheet.set_column(col_num, col_num, 20)
+        elif col == 'Support Status':
+            worksheet.set_column(col_num, col_num, 30, workbook.add_format({'text_wrap': True}))
         else:
             worksheet.set_column(col_num, col_num, 20)
     worksheet_formater(worksheet)

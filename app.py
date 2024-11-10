@@ -335,8 +335,9 @@ def component_overview_sheet(component_overview, workbook, writer):
     # Component Overview
     component_overview_df = pd.DataFrame(
         [{k: v for k, v in item.items() if k != 'componentVersion'} for item in component_overview])
-    component_overview_df.rename(columns={'componentVersionName': 'Component Version','componentName':'Component Name', 'componentDescription':'Component Description'}, inplace=True)
-
+    component_overview_df.rename(
+        columns={'componentVersionName': 'Component Version', 'componentName': 'Component Name',
+                 'componentDescription': 'Component Description'}, inplace=True)
 
     component_overview_df.to_excel(writer, sheet_name='Component Overview', index=False)
     worksheet = writer.sheets['Component Overview']
@@ -356,10 +357,17 @@ def title_sheet(tab1_content, workbook, writer):
     for item in tab1_content:
         title_page_data.append(item['Content'])
     title_page_df = pd.DataFrame(title_page_data, columns=['Purpose'])
-    title_page_df.to_excel(writer, sheet_name='Title Page', index=False)
+    title_page_df.to_excel(writer, sheet_name='Title Page', index=False, header=False)
     worksheet = writer.sheets['Title Page']
+    header_format = workbook.add_format(
+        {'text_wrap': True, 'bold': True, 'align': 'left', 'valign': 'vcenter', 'font_size': 14})
+    for col_num, col in enumerate(title_page_df.columns):
+        worksheet.set_column(col_num + 1, col_num, 120, workbook.add_format({'text_wrap': True}))
+
+        # Apply bold format to the first and third rows
+    worksheet.set_row(0, None, header_format)
+    worksheet.set_row(2, None, header_format)
     worksheet_formater(worksheet)
-    worksheet.set_column('A:A', 120, workbook.add_format({'text_wrap': True, 'align': 'left', 'valign': 'top'}))
 
 
 def worksheet_formater(worksheet):

@@ -60,13 +60,13 @@
 
     <div id="tab1" class="tab active">
         <h2>Purpose</h2>
-        <p>This document is used to report the product security analysis of vulnerabilities in software and hardware elements and parts (components), which are used in <span id="placeholder">___________________</span>. This report is established during design to capture remaining vulnerabilities. As new security issues including vulnerabilities are continuously identified in software and hardware components, this report must be maintained during the entire lifecycle until End-of-Support, as part of post market obligations for both medical as well as non-medical products.
+        <p>This document is used to report the product security analysis of vulnerabilities in software and hardware elements and parts (components), which are used in  &nbsp;<span id="placeholder">___________________</span>. This report is established during design to capture remaining vulnerabilities. As new security issues including vulnerabilities are continuously identified in software and hardware components, this report must be maintained during the entire lifecycle until End-of-Support, as part of post market obligations for both medical as well as non-medical products.
 
 This document demonstrates the continuous analysis of security issues and new vulnerabilities and serves as a trigger for follow-up actions and as an input into the higher-level product security risk assessment to further assess specific vulnerabilities and/or a set of aggregated vulnerabilities within specific components.
 
 This report uses the Software bill of materials (SBOM) document [REF-1] as one of its inputs. It captures the product-related vulnerability information, which originates from many sources such as information supplied by third party sources.</p>
         <h2>Scope</h2>
-        <p>"This document is applicable to all software and hardware components used in <span id="placeholder">___________________</span>.
+        <p>This document is applicable to all software and hardware components used in&nbsp; <span id="placeholder1">___________________</span>.
     </div>
     <div id="tab2" class="tab">
         <h2>Component Overview</h2>
@@ -219,7 +219,7 @@ This report uses the Software bill of materials (SBOM) document [REF-1] as one o
                 exploitability.textContent = version.exploitabilitySubscore;
                 impact.textContent = version.impactSubscore;
                 remediationStatus.value = version.remediationStatus;
-                remediationComment.value =  'Please update yourself in report';
+                remediationComment.value =  'Please update in report';
                 severityRating.textContent = version.severity;
                 updatePSSD.textContent = "No";
                 manageDefect.textContent = "No";
@@ -293,9 +293,27 @@ This report uses the Software bill of materials (SBOM) document [REF-1] as one o
 
     function updatePlaceholder() {
         let newData = document.getElementById('newData').value;
-        document.getElementById('placeholder').textContent = newData;
+        document.getElementById('placeholder').textContent =  newData;
         document.getElementById('placeholder1').textContent = newData;
-
+        // Send the newData value to the backend
+        fetch('/update_new_data', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ newData: newData })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                console.log('Data updated successfully');
+            } else {
+                console.error('Error updating data:', data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
     }
 
     document.addEventListener('DOMContentLoaded', (event) => {

@@ -342,9 +342,10 @@ def analysis_sheet(component_overview, workbook, writer):
 
 
 def join_remediation_comment(versionName, severity):
+    releaseName = session.get('new_data', {})
     a = f"a) Technical Impact on Production environment/Client: \n\n The OSS risks identified is {severity} risks and it is part of the base docker image. \n\n{versionName} component is not directly exposed to the internet and is not accessible by the end user. The component is used as a part of the application and is not directly accessible by the end user.\n\n\n"
     b = "\n\n\nb) Why we are not addressing now: \n\nApplication is using the alpine base image from official docker registry. The component will be upgraded once the non-vulnerable image is available in docker hub in future release."
-    c = "\n\n\nc) When we are addressing:\n\nPlan is to address this risk in the next release HSCS DataCore 4.7.0.0"
+    c = f"\n\n\nc) When we are addressing:\n\nPlan is to address this risk in the next release {releaseName}"
 
     return a + b + c
 
@@ -426,6 +427,18 @@ def get_revision_data():
     else:
         return jsonify({'status': 'error', 'message': 'No data found'})
 
+
+@app.route('/update_new_data', methods=['POST'])
+def update_release_name():
+    data = request.get_json()
+    new_data = data.get('newData')
+    if new_data:
+        # Process the new_data as needed
+        # For example, save it to the session or database
+        session['new_data'] = new_data
+        return jsonify({'status': 'success'})
+    else:
+        return jsonify({'status': 'error', 'message': 'No data provided'})
 
 @app.route('/config')
 def config():

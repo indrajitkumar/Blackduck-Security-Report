@@ -286,7 +286,11 @@ def revision_history_sheet(workbook, writer):
 
     for col_num, col in enumerate(revision_history_df.columns):
         worksheet.write(1, col_num, col, header_format)
-        worksheet.set_column(col_num, col_num, 30, workbook.add_format({'text_wrap': True}))
+        if col == 'Revision':
+            worksheet.set_column(col_num, col_num,10, workbook.add_format({'text_wrap': True,'align': 'left', 'valign': 'top'}))
+        elif col == 'Revision Date':
+            worksheet.set_column(col_num, col_num, 12, workbook.add_format({'text_wrap': True,'align': 'left', 'valign': 'top'}))
+        worksheet.set_column(col_num, col_num, 20, workbook.add_format({'text_wrap': True,'align': 'left', 'valign': 'top'}))
     worksheet_formater(worksheet)
     return revision_data
 

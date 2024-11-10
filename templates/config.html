@@ -4,69 +4,64 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Configuration</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+
+    </style>
 </head>
 <body>
-<div class="left-panel">
-    <a href="/config" onclick="loadContent('/config')" class="nav-link">Configuration</a>
-    <a href="/projects" onclick="loadContent('/projects')" class="nav-link">Software Product security vulnerability
-        report</a>
-    <a href="/bom" onclick="loadContent('/bom')" class="nav-link">Software Bill of Materials report</a>
-    <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-    <img src="https://blackduck.philips.com/static/images/b6d9c4bd.svg" alt="Black Duck Logo"
-         style="width: 150px; height: auto; margin-bottom: 20px;">
-    <br>
-    <img src="https://static.vecteezy.com/system/resources/previews/022/101/084/large_2x/philips-logo-transparent-free-png.png"
-         alt="Black Duck Logo"
-         style="width: 150px; height: auto; margin-bottom: 20px;">
-</div>
-<div class="right-panel">
-    <div class="header">
-        <h1>Black Duck Report Generator</h1>
-    </div>
-    <div class="content">
-        <p>Fill in the form below to configure the report.</p>
-    </div>
-    <div class="configuration-container">
-        <h2>Document revision history</h2>
-        <form id="configurationForm" onsubmit="saveRevisionData(event)">
-            <label for="referenceNumber">Reference number:</label>
-            <input type="text" id="referenceNumber" name="referenceNumber" required>
-
-            <label for="documentTitle">Document title:</label>
-            <input type="text" id="documentTitle" name="documentTitle" required>
-
-            <label for="documentId">Document ID:</label>
-            <input type="text" id="documentId" name="documentId" required>
-
-            <label for="revision">Revision:</label>
-            <input type="text" id="revision" name="revision" required>
-
-            <label for="date">Date:</label>
-            <input type="date" id="date" name="date" required>
-
-            <label for="author">Author:</label>
-            <input type="text" id="author" name="author" required>
-
-            <label for="attendees">Attendees:</label>
-            <textarea id="attendees" name="attendees" required></textarea>
-
-            <label for="crReason">Reason:</label>
-            <textarea id="crReason" name="crReason" required></textarea>
-
-            <br>
-            <h2>Terminology & Abbreviations</h2>
-            <div class="input-row">
-                <label for="term"></label><input type="text" id="term" placeholder="Term">
-                <label for="abbreviation"></label><input type="text" id="abbreviation" placeholder="Abbreviation">
-                <button type="button" onclick="addTerm()">Add</button>
+<div class="d-flex">
+        {% include 'left_panel.html' %}
+        <div class="right-panel flex-grow-1 p-6">
+            <div class="configuration-container">
+                <h2>Document Revision History</h2>
+                <form id="configurationForm" onsubmit="saveRevisionData(event)" class="mb-4">
+                    <div class="form-group">
+                        <label for="referenceNumber">Reference Number</label>
+                        <input type="text" id="referenceNumber" name="referenceNumber" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="documentTitle">Document Title</label>
+                        <input type="text" id="documentTitle" name="documentTitle" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="documentId">Document ID</label>
+                        <input type="text" id="documentId" name="documentId" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="revision">Revision</label>
+                        <input type="text" id="revision" name="revision" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="date">Date</label>
+                        <input type="date" id="date" name="date" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="author">Author</label>
+                        <input type="text" id="author" name="author" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="attendees">Attendees</label>
+                        <textarea id="attendees" name="attendees" class="form-control" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="crReason">Reason</label>
+                        <textarea id="crReason" name="crReason" class="form-control" required></textarea>
+                    </div>
+                    <h2>Terminology & Abbreviations</h2>
+                    <div class="input-group mb-3">
+                        <input type="text" id="term" placeholder="Term" class="form-control col-4 mr-2">
+                        <input type="text" id="abbreviation" placeholder="Abbreviation" class="form-control col-4 mr-2">
+                        <button type="button" onclick="addTerm()" class="btn btn-primary form-control col-2 mr-2">Add</button>
+                    </div>
+                    <ul id="termList" class="list-group mb-3"></ul>
+                    <button type="submit" class="btn btn-primary">Save Configuration</button>
+                </form>
             </div>
-            <ul id="termList"></ul>
-
-            <button type="submit">Save Configuration</button>
-        </form>
     </div>
 </div>
+
 <script>
     function loadContent(url) {
         fetch(url)
@@ -84,9 +79,9 @@
         if (term && abbreviation) {
             const li = document.createElement('li');
             li.textContent = `${term}: ${abbreviation}`;
+            li.className = 'list-group-item';
             document.getElementById('termList').appendChild(li);
 
-            // Clear the input fields
             document.getElementById('term').value = '';
             document.getElementById('abbreviation').value = '';
         } else {
@@ -95,12 +90,9 @@
     }
 
     function saveRevisionData(event) {
-        event.preventDefault(); // Prevent the form from submitting
+        event.preventDefault();
 
-        // Get the form data
         const formData = new FormData(document.getElementById('configurationForm'));
-
-        // Collect terms and abbreviations from the termList
         const termList = document.getElementById('termList').children;
         const terms = [];
         for (let i = 0; i < termList.length; i++) {
@@ -108,7 +100,6 @@
         }
         formData.append('terms', JSON.stringify(terms));
 
-        // Send the data to the server
         fetch('/save_revision_data', {
             method: 'POST',
             body: formData
@@ -127,5 +118,6 @@
             });
     }
 </script>
+<script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

@@ -34,7 +34,7 @@ def authenticate():
     if response.status_code == 200:
         token_data = response.json()
         session['bearerToken'] = token_data['bearerToken']
-        return redirect(url_for('config'))
+        return redirect(url_for('projects'))
     else:
         flash("Failed to authenticate with the provided token. Please try again.")
         return redirect(url_for('home'))
@@ -241,6 +241,7 @@ def references_sheet(workbook, revision_data, writer):
     for col_num, col in enumerate(references_df.columns):
         worksheet.write(1, col_num, col, header_format)
         worksheet.set_column(col_num, col_num, 30, workbook.add_format({'text_wrap': True}))
+
     worksheet_formater(worksheet)
 
 
@@ -400,32 +401,32 @@ def worksheet_formater(worksheet):
     worksheet.set_paper(9)
     worksheet.fit_to_pages(1, 0)
 
-
-@app.route('/save_revision_data', methods=['POST'])
-def save_revision_data():
-    revision_data = {
-        'referenceNumber': request.form.get('referenceNumber'),
-        'documentTitle': request.form.get('documentTitle'),
-        'documentId': request.form.get('documentId'),
-        'revision': request.form.get('revision'),
-        'date': request.form.get('date'),
-        'author': request.form.get('author'),
-        'attendees': request.form.get('attendees'),
-        'crReason': request.form.get('crReason'),
-        'terms': request.form.get('terms')
-    }
-    # Save the data to a session or database (for simplicity, using session here)
-    session['revision_data'] = revision_data
-    return jsonify({'status': 'success'})
-
-
-@app.route('/get_revision_data', methods=['GET'])
-def get_revision_data():
-    revision_data = session.get('revision_data', {})
-    if revision_data:
-        return jsonify({'status': 'success', 'revision_data': revision_data})
-    else:
-        return jsonify({'status': 'error', 'message': 'No data found'})
+#
+# @app.route('/save_revision_data', methods=['POST'])
+# def save_revision_data():
+#     revision_data = {
+#         'referenceNumber': request.form.get('referenceNumber'),
+#         'documentTitle': request.form.get('documentTitle'),
+#         'documentId': request.form.get('documentId'),
+#         'revision': request.form.get('revision'),
+#         'date': request.form.get('date'),
+#         'author': request.form.get('author'),
+#         'attendees': request.form.get('attendees'),
+#         'crReason': request.form.get('crReason'),
+#         'terms': request.form.get('terms')
+#     }
+#     # Save the data to a session or database (for simplicity, using session here)
+#     session['revision_data'] = revision_data
+#     return jsonify({'status': 'success'})
+#
+#
+# @app.route('/get_revision_data', methods=['GET'])
+# def get_revision_data():
+#     revision_data = session.get('revision_data', {})
+#     if revision_data:
+#         return jsonify({'status': 'success', 'revision_data': revision_data})
+#     else:
+#         return jsonify({'status': 'error', 'message': 'No data found'})
 
 
 @app.route('/update_new_data', methods=['POST'])
@@ -440,9 +441,9 @@ def update_release_name():
     else:
         return jsonify({'status': 'error', 'message': 'No data provided'})
 
-@app.route('/config')
-def config():
-    return render_template('config.html')
+# @app.route('/config')
+# def config():
+#     return render_template('config.html')
 
 
 @app.route('/bom')

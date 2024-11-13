@@ -217,11 +217,11 @@ def save_to_excel(component_overview, file_path='HSCS Product security vulnerabi
 
         analysis_sheet(component_overview, workbook, writer)
 
-        revision_data = revision_history_sheet(workbook, writer)
+        revision_history_sheet(workbook, writer)
 
-        terminology_sheet(workbook, revision_data, writer)
-
-        references_sheet(workbook, revision_data, writer)
+        # terminology_sheet(workbook, revision_data, writer)
+        #
+        # references_sheet(workbook, revision_data, writer)
         # workbook.close()
 
 
@@ -271,14 +271,12 @@ def terminology_sheet(workbook, revision_data, writer):
 
 def revision_history_sheet(workbook, writer):
     # Document Revision History
-    revision_data = session.get('revision_data', {})
-    revision = revision_data.get('revision')
-    date = revision_data.get('date')
-    author = revision_data.get('author')
-    attendees = revision_data.get('attendees')
-    crReason = revision_data.get('crReason')
-    revision_history_df = pd.DataFrame(
-        [{'Revision': revision, 'Revision Date': date, 'Author': author, 'Attendees': attendees, 'Reason': crReason}])
+    revision_data = session.get('revision_data', [])
+
+    # Create a DataFrame from the list of dictionaries
+    revision_history_df = pd.DataFrame(revision_data)
+
+    # Write the DataFrame to the Excel sheet
     revision_history_df.to_excel(writer, sheet_name='Document Revision History', startrow=1, index=False)
     worksheet = writer.sheets['Document Revision History']
     worksheet.write('A1', 'Document revision history',
@@ -288,12 +286,14 @@ def revision_history_sheet(workbook, writer):
     for col_num, col in enumerate(revision_history_df.columns):
         worksheet.write(1, col_num, col, header_format)
         if col == 'Revision':
-            worksheet.set_column(col_num, col_num,10, workbook.add_format({'text_wrap': True,'align': 'left', 'valign': 'top'}))
+            worksheet.set_column(col_num, col_num, 10,
+                                 workbook.add_format({'text_wrap': True, 'align': 'left', 'valign': 'top'}))
         elif col == 'Revision Date':
-            worksheet.set_column(col_num, col_num, 12, workbook.add_format({'text_wrap': True,'align': 'left', 'valign': 'top'}))
-        worksheet.set_column(col_num, col_num, 20, workbook.add_format({'text_wrap': True,'align': 'left', 'valign': 'top'}))
+            worksheet.set_column(col_num, col_num, 12,
+                                 workbook.add_format({'text_wrap': True, 'align': 'left', 'valign': 'top'}))
+        worksheet.set_column(col_num, col_num, 20,
+                             workbook.add_format({'text_wrap': True, 'align': 'left', 'valign': 'top'}))
     worksheet_formater(worksheet)
-    return revision_data
 
 
 def analysis_sheet(component_overview, workbook, writer):
@@ -339,7 +339,6 @@ def analysis_sheet(component_overview, workbook, writer):
         else:
             worksheet.set_column(col_num, col_num, 12,
                                  workbook.add_format({'text_wrap': True, 'align': 'left', 'valign': 'top'}))
-
 
 
 def join_remediation_comment(versionName, severity):
@@ -401,32 +400,22 @@ def worksheet_formater(worksheet):
     worksheet.set_paper(9)
     worksheet.fit_to_pages(1, 0)
 
-#
-# @app.route('/save_revision_data', methods=['POST'])
-# def save_revision_data():
-#     revision_data = {
-#         'referenceNumber': request.form.get('referenceNumber'),
-#         'documentTitle': request.form.get('documentTitle'),
-#         'documentId': request.form.get('documentId'),
-#         'revision': request.form.get('revision'),
-#         'date': request.form.get('date'),
-#         'author': request.form.get('author'),
-#         'attendees': request.form.get('attendees'),
-#         'crReason': request.form.get('crReason'),
-#         'terms': request.form.get('terms')
-#     }
-#     # Save the data to a session or database (for simplicity, using session here)
-#     session['revision_data'] = revision_data
-#     return jsonify({'status': 'success'})
-#
-#
-# @app.route('/get_revision_data', methods=['GET'])
-# def get_revision_data():
-#     revision_data = session.get('revision_data', {})
-#     if revision_data:
-#         return jsonify({'status': 'success', 'revision_data': revision_data})
-#     else:
-#         return jsonify({'status': 'error', 'message': 'No data found'})
+
+@app.route('/save_revision_data', methods=['POST'])
+def save_revision_data():
+    revision_data = request.json.get('revisionData', [])
+    # Save the data to a session or database (for simplicity, using session here)
+    session['revision_data'] = revision_data
+    return jsonify({'status': 'success'})
+
+
+@app.route('/get_revision_data', methods=['GET'])
+def get_revision_data():
+    revision_data = session.get('revision_data', {})
+    if revision_data:
+        return jsonify({'status': 'success', 'revision_data': revision_data})
+    else:
+        return jsonify({'status': 'error', 'message': 'No data found'})
 
 
 @app.route('/update_new_data', methods=['POST'])
@@ -440,6 +429,7 @@ def update_release_name():
         return jsonify({'status': 'success'})
     else:
         return jsonify({'status': 'error', 'message': 'No data provided'})
+
 
 # @app.route('/config')
 # def config():

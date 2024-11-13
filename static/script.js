@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
 });
 
 // Function to add a new row
-function addRow( tableId, cellCount)  {
+function addRow(tableId, cellCount) {
     const table = document.getElementById(tableId).getElementsByTagName('tbody')[0];
     const newRow = table.insertRow();
 
@@ -276,13 +276,14 @@ function populateTable(data) {
 }
 
 function generateExcelReport() {
+    saveRevisionHistoryData();
     let newData = document.getElementById('newData').value;
     let selectedProjectId = document.getElementById('projects').value;
     let tab1Content = document.getElementById('tab1').innerHTML;
-    if (!newData.trim()) {
-        alert("Please enter the project name with version.");
-        return;
-    }
+    // if (!newData.trim()) {
+    //     alert("Please enter the project name with version.");
+    //     return;
+    // }
 
     if (!selectedProjectId) {
         alert("Please select a project.");
@@ -370,3 +371,61 @@ document.addEventListener('DOMContentLoaded', (event) => {
         });
     });
 });
+
+function saveRevisionHistoryData() {
+    const table = document.getElementById('revisionHistoryTable');
+    const rows = table.querySelectorAll('tbody tr');
+    const data = [];
+
+    rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        const rowData = {
+            revision: cells[0].innerText,
+            revisionDate: cells[1].innerText,
+            author: cells[2].innerText,
+            attendees: cells[3].innerText,
+            reason: cells[4].innerText
+        };
+        data.push(rowData);
+    });
+
+    fetch('/save_revision_data', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({revisionData: data})
+    })
+    .then(response => response.json())
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+
+
+function saveRevisionData() {
+    // const formData = new FormData(document.getElementById('configurationForm'));
+    const termList = document.getElementById('revisionHistoryTable').children;
+    const terms = [];
+    for (let i = 0; i < termList.length; i++) {
+        terms.push(termList[i].textContent);
+    }
+    // formData.append('terms', JSON.stringify(terms));
+
+    fetch('/save_revision_data', {
+        method: 'POST',
+        body: formData
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert('Data saved successfully');
+            } else {
+                alert('Failed to save data');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while saving data');
+        });
+}

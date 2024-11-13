@@ -53,6 +53,7 @@
                 <button type="button" class="btn btn-primary" onclick="showTab('tab5')">Abbreviations</button>
                 <button type="button" class="btn btn-primary" onclick="showTab('tab6')">References</button>
             </div>
+            <button class="btn btn-primary" onclick="feedDataToRevisionHistory()">Feed Data</button>
             <button type="button" class="btn btn-primary" onclick="generateExcelReport()">Generate Excel Report</button>
         </div>
         <!-- Tab Content -->
@@ -125,16 +126,16 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <tr>
-                        <td contenteditable="true" class="editable-cell">A</td>
-                        <td contenteditable="true" class="editable-cell">See Windchill</td>
-                        <td contenteditable="true" class="editable-cell">PS Jayalakshmi</td>
-                        <td contenteditable="true" class="editable-cell">Xander Heemskerk, Akhil Naik, Rohit Kumar, Cheena Kathpal, Rohini Balasubramanya, Pradeep Kumar Purushothaman</td>
-                        <td contenteditable="true" class="editable-cell">Vulnerability analysis report for HSCS DataCore 4.6.0.0 release</td>
-                        <td>
-                            <button class="btn btn-danger btn-sm" onclick="deleteRow(this)">Delete</button>
-                        </td>
-                    </tr>
+{#                    <tr>#}
+{#                        <td contenteditable="true" class="editable-cell">A</td>#}
+{#                        <td contenteditable="true" class="editable-cell">See Windchill</td>#}
+{#                        <td contenteditable="true" class="editable-cell">PS Jayalakshmi</td>#}
+{#                        <td contenteditable="true" class="editable-cell">Xander Heemskerk, Akhil Naik, Rohit Kumar, Cheena Kathpal, Rohini Balasubramanya, Pradeep Kumar Purushothaman</td>#}
+{#                        <td contenteditable="true" class="editable-cell">Vulnerability analysis report for HSCS DataCore 4.6.0.0 release</td>#}
+{#                        <td>#}
+{#                            <button class="btn btn-danger btn-sm" onclick="deleteRow(this)">Delete</button>#}
+{#                        </td>#}
+{#                    </tr>#}
                     </tbody>
                 </table>
                 <button class="btn btn-primary" onclick="addRow('revisionHistoryTable', 5)">Add Row</button>
@@ -178,6 +179,30 @@
     </div>
 
     <script>
+
+        function feedDataToRevisionHistory() {
+            const table = document.getElementById('revisionHistoryTable').getElementsByTagName('tbody')[0];
+            const newRow = table.insertRow();
+
+            const data = [
+                '1.1',
+                '2023-10-02',
+                'John Doe',
+                'Jane Smith, Bob Johnson',
+                'Updated vulnerability analysis'
+            ];
+
+            data.forEach((text, index) => {
+                const cell = newRow.insertCell(index);
+                cell.contentEditable = "true";
+                cell.className = "editable-cell";
+                cell.textContent = text;
+            });
+
+            // Add delete button
+            const actionsCell = newRow.insertCell(data.length);
+            actionsCell.innerHTML = '<button class="btn btn-danger btn-sm" onclick="deleteRow(this)">Delete</button>';
+        }
     function showTab(tabId) {
         let tabs = document.querySelectorAll('.tab');
         tabs.forEach(function (tab) {

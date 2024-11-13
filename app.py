@@ -272,11 +272,18 @@ def terminology_sheet(workbook, revision_data, writer):
 def revision_history_sheet(workbook, writer):
     # Document Revision History
     revision_data = session.get('revision_data', [])
+    revision_history_list = []
 
-    # Create a DataFrame from the list of dictionaries
-    revision_history_df = pd.DataFrame(revision_data)
+    for data in revision_data:
+        revision_history_list.append({
+            'Revision': data.get('revision', ''),
+            'Revision Date': data.get('revisionDate', ''),
+            'Author': data.get('author', ''),
+            'Attendees': data.get('attendees', ''),
+            'Reason': data.get('reason', '')
+        })
 
-    # Write the DataFrame to the Excel sheet
+    revision_history_df = pd.DataFrame(revision_history_list)
     revision_history_df.to_excel(writer, sheet_name='Document Revision History', startrow=1, index=False)
     worksheet = writer.sheets['Document Revision History']
     worksheet.write('A1', 'Document revision history',
@@ -286,13 +293,11 @@ def revision_history_sheet(workbook, writer):
     for col_num, col in enumerate(revision_history_df.columns):
         worksheet.write(1, col_num, col, header_format)
         if col == 'Revision':
-            worksheet.set_column(col_num, col_num, 10,
-                                 workbook.add_format({'text_wrap': True, 'align': 'left', 'valign': 'top'}))
+            worksheet.set_column(col_num, col_num, 10, workbook.add_format({'text_wrap': True, 'align': 'left', 'valign': 'top'}))
         elif col == 'Revision Date':
-            worksheet.set_column(col_num, col_num, 12,
-                                 workbook.add_format({'text_wrap': True, 'align': 'left', 'valign': 'top'}))
-        worksheet.set_column(col_num, col_num, 20,
-                             workbook.add_format({'text_wrap': True, 'align': 'left', 'valign': 'top'}))
+            worksheet.set_column(col_num, col_num, 20, workbook.add_format({'text_wrap': True, 'align': 'left', 'valign': 'top'}))
+        else:
+            worksheet.set_column(col_num, col_num, 50, workbook.add_format({'text_wrap': True, 'align': 'left', 'valign': 'top'}))
     worksheet_formater(worksheet)
 
 

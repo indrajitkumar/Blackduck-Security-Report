@@ -1,7 +1,4 @@
-import ast
 import os
-from datetime import datetime
-from xml.sax.handler import version
 
 import pandas as pd
 import requests
@@ -219,20 +216,24 @@ def save_to_excel(component_overview, file_path='HSCS Product security vulnerabi
 
         revision_history_sheet(workbook, writer)
 
-        # terminology_sheet(workbook, revision_data, writer)
-        #
-        # references_sheet(workbook, revision_data, writer)
+        terminology_sheet(workbook, writer)
+
+        references_sheet(workbook, writer)
         # workbook.close()
 
 
-def references_sheet(workbook, revision_data, writer):
+def references_sheet(workbook, writer):
     # References
-    referenceNumber = revision_data.get('referenceNumber')
-    documentTitle = revision_data.get('documentTitle')
-    documentId = revision_data.get('documentId')
-    references_df = pd.DataFrame(
-        [{'Reference number': referenceNumber, 'Document title': documentTitle, 'Document ID': documentId}]
-    )
+    reference_data = session.get('referenceData', [])
+    reference_data_list = []
+    for data in reference_data:
+        reference_data_list.append({
+            'Reference Number': data.get('referenceNumber', ''),
+            'Document Title': data.get('documentTitle', ''),
+            'Document ID': data.get('documentId', '')
+        })
+
+        references_df = pd.DataFrame(reference_data_list)
     references_df.to_excel(writer, sheet_name='References', startrow=1, index=False)
     worksheet = writer.sheets['References']
     header_format = workbook.add_format({'text_wrap': True, 'bold': True, 'align': 'left', 'valign': 'vcenter'})
@@ -245,19 +246,17 @@ def references_sheet(workbook, revision_data, writer):
     worksheet_formater(worksheet)
 
 
-def terminology_sheet(workbook, revision_data, writer):
+def terminology_sheet(workbook, writer):
     # Terminology & Abbreviations
-    data_list = revision_data.get('terms')
-    terms_list = ast.literal_eval(data_list)
-    data_dict = {'Terminology & Abbreviations': [], 'Description/Definition': []}
-    for item in terms_list:
-        if ": " in item:
-            key, value = item.split(": ", 1)
-            data_dict['Terminology & Abbreviations'].append(key)
-            data_dict['Description/Definition'].append(value)
-        else:
-            print(f"Skipping invalid item: {item}")
-    abbreviations_df = pd.DataFrame(data_dict)
+    data_list = session.get('terminology_data', [])
+    data_terminology_list = []
+    for data in data_list:
+        data_terminology_list.append({
+            'Terminology & Abbreviations': data.get('terminology', ''),
+            'Description/Definition': data.get('description', '')
+        })
+
+    abbreviations_df = pd.DataFrame(data_terminology_list)
     abbreviations_df.to_excel(writer, sheet_name='Terminology & Abbreviations', startrow=1, index=False)
     worksheet = writer.sheets['Terminology & Abbreviations']
     worksheet.write('A1', 'Terminology & Abbreviations',
@@ -293,11 +292,14 @@ def revision_history_sheet(workbook, writer):
     for col_num, col in enumerate(revision_history_df.columns):
         worksheet.write(1, col_num, col, header_format)
         if col == 'Revision':
-            worksheet.set_column(col_num, col_num, 10, workbook.add_format({'text_wrap': True, 'align': 'left', 'valign': 'top'}))
+            worksheet.set_column(col_num, col_num, 10,
+                                 workbook.add_format({'text_wrap': True, 'align': 'left', 'valign': 'top'}))
         elif col == 'Revision Date':
-            worksheet.set_column(col_num, col_num, 20, workbook.add_format({'text_wrap': True, 'align': 'left', 'valign': 'top'}))
+            worksheet.set_column(col_num, col_num, 20,
+                                 workbook.add_format({'text_wrap': True, 'align': 'left', 'valign': 'top'}))
         else:
-            worksheet.set_column(col_num, col_num, 50, workbook.add_format({'text_wrap': True, 'align': 'left', 'valign': 'top'}))
+            worksheet.set_column(col_num, col_num, 50,
+                                 workbook.add_format({'text_wrap': True, 'align': 'left', 'valign': 'top'}))
     worksheet_formater(worksheet)
 
 
@@ -411,6 +413,22 @@ def save_revision_data():
     revision_data = request.json.get('revisionData', [])
     # Save the data to a session or database (for simplicity, using session here)
     session['revision_data'] = revision_data
+    return jsonify({'status': 'success'})
+
+
+@app.route('/save_terminology_data', methods=['POST'])
+def save_terminology_data():
+    terminology_data = request.json.get('terminologyData', [])
+    # Save the data to a session or database (for simplicity, using session here)
+    session['terminology_data'] = terminology_data
+    return jsonify({'status': 'success'})
+
+
+@app.route('/save_reference_data', methods=['POST'])
+def save_reference_data():
+    referenceData = request.json.get('referenceData', [])
+    # Save the data to a session or database (for simplicity, using session here)
+    session['referenceData'] = referenceData
     return jsonify({'status': 'success'})
 
 

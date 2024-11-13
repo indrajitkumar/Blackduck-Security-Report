@@ -51,6 +51,28 @@ document.addEventListener('DOMContentLoaded', (event) => {
     });
 });
 
+// Function to add a new row
+function addRow( tableId, cellCount)  {
+    const table = document.getElementById(tableId).getElementsByTagName('tbody')[0];
+    const newRow = table.insertRow();
+
+    for (let i = 0; i < cellCount; i++) {
+        const cell = newRow.insertCell(i);
+        cell.contentEditable = "true";
+        cell.className = "editable-cell";
+        cell.textContent = ""; // Start with empty cells
+    }
+
+    // Add delete button
+    const actionsCell = newRow.insertCell(cellCount);
+    actionsCell.innerHTML = '<button class="btn btn-danger btn-sm" onclick="deleteRow(this)">Delete</button>';
+}
+
+// Function to delete a row
+function deleteRow(button) {
+    const row = button.closest("tr");
+    row.parentNode.removeChild(row);
+}
 
 function importExcelFile() {
     const fileInput = document.getElementById('importExcel');
@@ -80,55 +102,63 @@ function importExcelFile() {
         const worksheet_document_revision_history = workbook.Sheets[document_revision_history];
         const jsonData_document_revision_history = XLSX.utils.sheet_to_json(worksheet_document_revision_history, {header: 1});
         console.log(jsonData_document_revision_history);
-        if (jsonData_document_revision_history !== 0) {
-            document.getElementById('revisionDataContainer').innerHTML = `
-                        <table class="table table-bordered">
-                            <tr><th>Revision</th><td>${jsonData_document_revision_history[2][0]}</td></tr>
-                            <tr><th>Revision Date</th><td>${jsonData_document_revision_history[2][1]}</td></tr>
-                            <tr><th>Author</th><td>${jsonData_document_revision_history[2][2]}</td></tr>
-                            <tr><th>Attendees</th><td>${jsonData_document_revision_history[2][3]}</td></tr>
-                            <tr><th>Reason</th><td>${jsonData_document_revision_history[2][4]}</td></tr>
-                        </table>
-                    `;
-        } else {
-            document.getElementById('revisionDataContainer').innerHTML = 'No data available';
-        }
+
+        // Populate data in revision history table
+        const table = document.getElementById('revisionHistoryTable').getElementsByTagName('tbody')[0];
+        jsonData_document_revision_history.slice(3).forEach(rowData => {
+            const newRow = table.insertRow();
+            rowData.forEach((text, index) => {
+                const cell = newRow.insertCell(index);
+                cell.contentEditable = "true";
+                cell.className = "editable-cell";
+                cell.textContent = text;
+            });
+
+            // Add delete button
+            const actionsCell = newRow.insertCell(rowData.length);
+            actionsCell.innerHTML = '<button class="btn btn-danger btn-sm" onclick="deleteRow(this)">Delete</button>';
+        });
 
         const abbreviation = workbook.SheetNames[4];
         const worksheet_abbreviation = workbook.Sheets[abbreviation];
         const jsonData_abbreviation = XLSX.utils.sheet_to_json(worksheet_abbreviation, {header: 1});
-        console.log(jsonData_abbreviation - 1);
 
-        if (jsonData_abbreviation !== 0) {
-            let termsTable = '<table class="table table-bordered"><tr><th>Term</th><th>Abbreviation</th></tr>';
-            jsonData_abbreviation.slice(2).forEach(row => {
-                if (row.length >= 2) {
-                    const [key, value] = row;
-                    termsTable += `<tr><td>${key}</td><td>${value}</td></tr>`;
-                }
+        // Populate data in terminology & abbreviation table
+        const tableTerm = document.getElementById('terminologyAbbreviationTable').getElementsByTagName('tbody')[0];
+        jsonData_abbreviation.slice(3).forEach(rowData => {
+            const newRow = tableTerm.insertRow();
+            rowData.forEach((text, index) => {
+                const cell = newRow.insertCell(index);
+                cell.contentEditable = "true";
+                cell.className = "editable-cell";
+                cell.textContent = text;
             });
-            termsTable += '</table>';
-            document.getElementById('termListDataContainer').innerHTML = termsTable;
-        } else {
-            document.getElementById('termListDataContainer').innerHTML = 'No data available';
-        }
+
+            // Add delete button
+            const actionsCell = newRow.insertCell(rowData.length);
+            actionsCell.innerHTML = '<button class="btn btn-danger btn-sm" onclick="deleteRow(this)">Delete</button>';
+        });
 
 
         const references = workbook.SheetNames[5];
         const worksheet_references = workbook.Sheets[references];
         const jsonData_references = XLSX.utils.sheet_to_json(worksheet_references, {header: 1});
         console.log(jsonData_references);
-        if (jsonData_references !== 0) {
-            document.getElementById('referencesDataContainer').innerHTML = `
-                        <table class="table table-bordered">
-                            <tr><th>Reference Number</th><td>${jsonData_references[2][0]}</td></tr>
-                            <tr><th>Document Title</th><td>${jsonData_references[2][1]}</td></tr>
-                            <tr><th>Document ID</th><td>${jsonData_references[2][2]}</td></tr>
-                        </table>
-                    `;
-        } else {
-            document.getElementById('referencesDataContainer').innerHTML = 'No data available';
-        }
+        // Populate data in References table
+        const tableReference = document.getElementById('referencesTable').getElementsByTagName('tbody')[0];
+        jsonData_references.slice(3).forEach(rowData => {
+            const newRow = tableReference.insertRow();
+            rowData.forEach((text, index) => {
+                const cell = newRow.insertCell(index);
+                cell.contentEditable = "true";
+                cell.className = "editable-cell";
+                cell.textContent = text;
+            });
+
+            // Add delete button
+            const actionsCell = newRow.insertCell(rowData.length);
+            actionsCell.innerHTML = '<button class="btn btn-danger btn-sm" onclick="deleteRow(this)">Delete</button>';
+        });
     };
 
     reader.readAsArrayBuffer(file);

@@ -1,7 +1,4 @@
-import ast
 import os
-from datetime import datetime
-from xml.sax.handler import version
 
 import pandas as pd
 import requests
@@ -34,7 +31,7 @@ def authenticate():
     if response.status_code == 200:
         token_data = response.json()
         session['bearerToken'] = token_data['bearerToken']
-        return redirect(url_for('config'))
+        return redirect(url_for('projects'))
     else:
         flash("Failed to authenticate with the provided token. Please try again.")
         return redirect(url_for('home'))
@@ -217,22 +214,26 @@ def save_to_excel(component_overview, file_path='HSCS Product security vulnerabi
 
         analysis_sheet(component_overview, workbook, writer)
 
-        revision_data = revision_history_sheet(workbook, writer)
+        revision_history_sheet(workbook, writer)
 
-        terminology_sheet(workbook, revision_data, writer)
+        terminology_sheet(workbook, writer)
 
-        references_sheet(workbook, revision_data, writer)
+        references_sheet(workbook, writer)
         # workbook.close()
 
 
-def references_sheet(workbook, revision_data, writer):
+def references_sheet(workbook, writer):
     # References
-    referenceNumber = revision_data.get('referenceNumber')
-    documentTitle = revision_data.get('documentTitle')
-    documentId = revision_data.get('documentId')
-    references_df = pd.DataFrame(
-        [{'Reference number': referenceNumber, 'Document title': documentTitle, 'Document ID': documentId}]
-    )
+    reference_data = session.get('referenceData', [])
+    reference_data_list = []
+    for data in reference_data:
+        reference_data_list.append({
+            'Reference Number': data.get('referenceNumber', ''),
+            'Document Title': data.get('documentTitle', ''),
+            'Document ID': data.get('documentId', '')
+        })
+
+    references_df = pd.DataFrame(reference_data_list)
     references_df.to_excel(writer, sheet_name='References', startrow=1, index=False)
     worksheet = writer.sheets['References']
     header_format = workbook.add_format({'text_wrap': True, 'bold': True, 'align': 'left', 'valign': 'vcenter'})
@@ -241,43 +242,51 @@ def references_sheet(workbook, revision_data, writer):
     for col_num, col in enumerate(references_df.columns):
         worksheet.write(1, col_num, col, header_format)
         worksheet.set_column(col_num, col_num, 30, workbook.add_format({'text_wrap': True}))
+
     worksheet_formater(worksheet)
 
 
-def terminology_sheet(workbook, revision_data, writer):
+def terminology_sheet(workbook, writer):
     # Terminology & Abbreviations
-    data_list = revision_data.get('terms')
-    terms_list = ast.literal_eval(data_list)
-    data_dict = {'Terminology & Abbreviations': [], 'Description/Definition': []}
-    for item in terms_list:
-        if ": " in item:
-            key, value = item.split(": ", 1)
-            data_dict['Terminology & Abbreviations'].append(key)
-            data_dict['Description/Definition'].append(value)
-        else:
-            print(f"Skipping invalid item: {item}")
-    abbreviations_df = pd.DataFrame(data_dict)
+    data_list = session.get('terminology_data', [])
+    data_terminology_list = []
+    for data in data_list:
+        data_terminology_list.append({
+            'Terminology & Abbreviations': data.get('terminology', ''),
+            'Description/Definition': data.get('description', '')
+        })
+
+    abbreviations_df = pd.DataFrame(data_terminology_list)
     abbreviations_df.to_excel(writer, sheet_name='Terminology & Abbreviations', startrow=1, index=False)
     worksheet = writer.sheets['Terminology & Abbreviations']
     worksheet.write('A1', 'Terminology & Abbreviations',
                     workbook.add_format({'align': 'left', 'valign': 'vcenter', 'bold': True, 'font_size': 14}))
     header_format = workbook.add_format({'text_wrap': True, 'bold': True, 'align': 'left', 'valign': 'vcenter'})
+
     for col_num, col in enumerate(abbreviations_df.columns):
         worksheet.write(1, col_num, col, header_format)
-        worksheet.set_column(col_num, col_num, 30, workbook.add_format({'text_wrap': True}))
+        if col == 'Terminology & Abbreviations':
+            worksheet.set_column(col_num, col_num, 30, workbook.add_format({'text_wrap': True}))
+        else:
+            worksheet.set_column(col_num, col_num, 50, workbook.add_format({'text_wrap': True}))
     worksheet_formater(worksheet)
 
 
 def revision_history_sheet(workbook, writer):
     # Document Revision History
-    revision_data = session.get('revision_data', {})
-    revision = revision_data.get('revision')
-    date = revision_data.get('date')
-    author = revision_data.get('author')
-    attendees = revision_data.get('attendees')
-    crReason = revision_data.get('crReason')
-    revision_history_df = pd.DataFrame(
-        [{'Revision': revision, 'Revision Date': date, 'Author': author, 'Attendees': attendees, 'Reason': crReason}])
+    revision_data = session.get('revision_data', [])
+    revision_history_list = []
+
+    for data in revision_data:
+        revision_history_list.append({
+            'Revision': data.get('revision', ''),
+            'Revision Date': data.get('revisionDate', ''),
+            'Author': data.get('author', ''),
+            'Attendees': data.get('attendees', ''),
+            'Reason': data.get('reason', '')
+        })
+
+    revision_history_df = pd.DataFrame(revision_history_list)
     revision_history_df.to_excel(writer, sheet_name='Document Revision History', startrow=1, index=False)
     worksheet = writer.sheets['Document Revision History']
     worksheet.write('A1', 'Document revision history',
@@ -287,12 +296,15 @@ def revision_history_sheet(workbook, writer):
     for col_num, col in enumerate(revision_history_df.columns):
         worksheet.write(1, col_num, col, header_format)
         if col == 'Revision':
-            worksheet.set_column(col_num, col_num,10, workbook.add_format({'text_wrap': True,'align': 'left', 'valign': 'top'}))
+            worksheet.set_column(col_num, col_num, 10,
+                                 workbook.add_format({'text_wrap': True, 'align': 'left', 'valign': 'top'}))
         elif col == 'Revision Date':
-            worksheet.set_column(col_num, col_num, 12, workbook.add_format({'text_wrap': True,'align': 'left', 'valign': 'top'}))
-        worksheet.set_column(col_num, col_num, 20, workbook.add_format({'text_wrap': True,'align': 'left', 'valign': 'top'}))
+            worksheet.set_column(col_num, col_num, 20,
+                                 workbook.add_format({'text_wrap': True, 'align': 'left', 'valign': 'top'}))
+        else:
+            worksheet.set_column(col_num, col_num, 50,
+                                 workbook.add_format({'text_wrap': True, 'align': 'left', 'valign': 'top'}))
     worksheet_formater(worksheet)
-    return revision_data
 
 
 def analysis_sheet(component_overview, workbook, writer):
@@ -311,7 +323,6 @@ def analysis_sheet(component_overview, workbook, writer):
                 'Base score': version['baseScore'],
                 'Exploitability': version['exploitabilitySubscore'],
                 'Impact': version['impactSubscore'],
-                'Remediation status': version.get('remediationStatus', ''),
                 'Remediation comment': join_remediation_comment(item['componentName'], version['severity']),
                 'Severity rating': version['severity'],
                 'Update PSSD?': 'No',
@@ -340,12 +351,11 @@ def analysis_sheet(component_overview, workbook, writer):
                                  workbook.add_format({'text_wrap': True, 'align': 'left', 'valign': 'top'}))
 
 
-
 def join_remediation_comment(versionName, severity):
     releaseName = session.get('new_data', {})
-    a = f"a) Technical Impact on Production environment/Client: \n\n The OSS risks identified is {severity} risks and it is part of the base docker image. \n\n{versionName} component is not directly exposed to the internet and is not accessible by the end user. The component is used as a part of the application and is not directly accessible by the end user.\n\n\n"
-    b = "\n\n\nb) Why we are not addressing now: \n\nApplication is using the alpine base image from official docker registry. The component will be upgraded once the non-vulnerable image is available in docker hub in future release."
-    c = f"\n\n\nc) When we are addressing:\n\nPlan is to address this risk in the next release {releaseName}"
+    a = f"a) Technical Impact on Production environment/Client:"
+    b = "\n\n\nb) Why we are not addressing now:"
+    c = f"\n\n\nc) When we are addressing:\n\n"
 
     return a + b + c
 
@@ -403,19 +413,25 @@ def worksheet_formater(worksheet):
 
 @app.route('/save_revision_data', methods=['POST'])
 def save_revision_data():
-    revision_data = {
-        'referenceNumber': request.form.get('referenceNumber'),
-        'documentTitle': request.form.get('documentTitle'),
-        'documentId': request.form.get('documentId'),
-        'revision': request.form.get('revision'),
-        'date': request.form.get('date'),
-        'author': request.form.get('author'),
-        'attendees': request.form.get('attendees'),
-        'crReason': request.form.get('crReason'),
-        'terms': request.form.get('terms')
-    }
+    revision_data = request.json.get('revisionData', [])
     # Save the data to a session or database (for simplicity, using session here)
     session['revision_data'] = revision_data
+    return jsonify({'status': 'success'})
+
+
+@app.route('/save_terminology_data', methods=['POST'])
+def save_terminology_data():
+    terminology_data = request.json.get('terminologyData', [])
+    # Save the data to a session or database (for simplicity, using session here)
+    session['terminology_data'] = terminology_data
+    return jsonify({'status': 'success'})
+
+
+@app.route('/save_reference_data', methods=['POST'])
+def save_reference_data():
+    referenceData = request.json.get('referenceData', [])
+    # Save the data to a session or database (for simplicity, using session here)
+    session['referenceData'] = referenceData
     return jsonify({'status': 'success'})
 
 
@@ -441,9 +457,9 @@ def update_release_name():
         return jsonify({'status': 'error', 'message': 'No data provided'})
 
 
-@app.route('/config')
-def config():
-    return render_template('config.html')
+# @app.route('/config')
+# def config():
+#     return render_template('config.html')
 
 
 @app.route('/bom')

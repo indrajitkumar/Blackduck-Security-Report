@@ -12,7 +12,7 @@
         <h1>Login to Black Duck Report Generator</h1>
         <form action="{{ url_for('authenticate') }}" method="POST" onsubmit="showLoader()">
             <img src="https://blackduck.philips.com/static/images/b6d9c4bd.svg" alt="Black Duck Logo"
-                 style="width: 200px; height: auto; margin-bottom: 20px;">
+                 style="width: 130px; height: auto; margin-bottom: 20px;">
             <label for="api_token">Blackduck API Token:</label>
             <input type="text" id="api_token" name="api_token" required maxlength="200">
             <button type="submit">Login</button>

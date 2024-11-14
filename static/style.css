@@ -23,10 +23,15 @@ form {
 label {
     font-weight: bold;
 }
+.form-control-lg {
+    height: calc(1.5em + 1rem + 2px);
+    padding: .5rem 1rem;
+    font-size: 19px;
+    line-height: 1.5;
+    border-radius: 11.3rem;
+}
 
 select {
-    padding: 10px;
-    margin-top: 10px;
     width: 100%;
     max-width: 300px;
     border: 1px solid #ccc;
@@ -336,6 +341,41 @@ a:hover {
     animation: clickAnimation 0.3s ease;
 }
 
+/* Uniform height and centering */
+#projectForm .form-control,
+#projectForm .form-control-file {
+    height: calc(2.5rem + 2px); /* Adjust height if needed */
+    margin-bottom: 0;
+}
+
+.form-row {
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-wrap: wrap;
+    flex-wrap: wrap;
+    margin-right: -5px;
+    margin-left: -5px;
+    margin-bottom: 15px;
+}
+
+#projectForm .form-row {
+    display: flex;
+    gap: 0rem;
+    align-items: center;
+    margin-top: 25px;
+}
+
+/* Adjust labels alignment */
+#projectForm label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 0.2rem;
+}
+
+/* Ensure the file input button aligns better */
+#importExcel {
+    padding: 0.375rem 0.58rem;
+}
 /* Footer styling */
 .footer {
     display: flex;
@@ -355,7 +395,7 @@ a:hover {
 }
 
 .left-panel {
-    width: 200px;
+    width: 180px;
     height: 100vh;
     position: fixed;
     top: 0;

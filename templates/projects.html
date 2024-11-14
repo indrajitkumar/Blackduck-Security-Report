@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Black Duck Projects</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <script src="{{ url_for('static', filename='script.js') }}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
@@ -13,59 +14,54 @@
 <div class="d-flex">
     {% include 'left_panel.html' %}
     <div class="right-panel flex-grow-1 p-4">
-        <h2 class="mb-4 text-center">Software Product Security Vulnerability Report</h2>
-
-        <!-- Project Selection Form -->
+        <h2 class="mb-4 text-center" style="margin-top: -20px; margin-bottom: 40px;">Software Product Security Vulnerability Report</h2>
         <form id="projectForm" class="mb-4">
-            <div class="row align-items-center">
+            <div class="form-row">
                 <!-- Project Selection -->
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label for="projects">Select a project</label>
-                        <select id="projects" name="projects" class="form-control" onchange="getSelectedProject()">
-                            <option value="" disabled selected>--Select--</option>
-                            {% for project in projects %}
-                                <option value="{{ project._meta.href.split('/')[-1] }}"
-                                        data-name="{{ project.name }}">{{ project.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
+                <div class="form-group col-md-4">
+                    <select id="projects" name="projects" class="form-control" onchange="getSelectedProject()">
+                        <option value="" disabled selected>--Select Project--</option>
+                        {% for project in projects %}
+                            <option value="{{ project._meta.href.split('/')[-1] }}" data-name="{{ project.name }}">{{ project.name }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
 
-
                 <!-- Project Name with Version -->
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label for="newData">Enter project name with version</label>
-                        <input type="text" id="newData" name="newData" class="form-control"
-                               oninput="updatePlaceholder()">
-                    </div>
+                <div class="form-group col-md-4">
+                    <input type="text" id="newData" name="newData" class="form-control" placeholder="Project Version" oninput="updatePlaceholder()">
+                </div>
+
+                <!-- Import Excel -->
+                <div class="form-group col-md-4">
+                    <input type="file" id="importExcel" class="form-control" accept=".xlsx" onchange="importExcelFile()" />
                 </div>
 
             </div>
         </form>
+
+
         {#        <!-- Selected Project Name -->#}
         {#        <h2 id="selectedProjectName" class="mb-4">Select a project to see its name here</h2>#}
 
         <div class="d-flex justify-content-between mb-4">
             <div class="btn-group" role="group">
-                <button type="button" class="btn btn-primary" onclick="showTab('tab1')">Title Page</button>
-                <button type="button" class="btn btn-primary" onclick="showTab('tab2')">Component Overview</button>
-                <button type="button" class="btn btn-primary" onclick="showTab('tab3')">Analysis</button>
-                <button type="button" class="btn btn-primary" onclick="showTab('tab4')">Document Revision History
-                </button>
-                <button type="button" class="btn btn-primary" onclick="showTab('tab5')">Abbreviations</button>
+                <button type="button" class="btn btn-primary mr-2" onclick="showTab('tab1')">Title Page</button>
+                <button type="button" class="btn btn-primary mr-2" onclick="showTab('tab2')">Component Overview</button>
+                <button type="button" class="btn btn-primary mr-2" onclick="showTab('tab3')">Analysis</button>
+                <button type="button" class="btn btn-primary mr-2" onclick="showTab('tab4')">Document Revision History</button>
+                <button type="button" class="btn btn-primary mr-2" onclick="showTab('tab5')">Abbreviations</button>
                 <button type="button" class="btn btn-primary" onclick="showTab('tab6')">References</button>
             </div>
             <div class="flex-column">
-                <input type="file" id="importExcel" class="btn btn-secondary" accept=".xlsx"
-                       onchange="importExcelFile()" title="Upload the latest report">
-                <button type="button" class="btn btn-primary" onclick="generateExcelReport()">Generate Excel Report</button>
+                <button type="button" class="btn btn-success" onclick="generateExcelReport()">
+                    <i class="fas fa-download mr-2"></i> Export Report
+                </button>
             </div>
         </div>
 
         <div id="tab1" class="tab active">
-            <h2>Purpose</h2>
+            <h3>Purpose</h3>
             <p>This document is used to report the product security analysis of vulnerabilities in software and hardware
                 elements and parts (components), which are used in &nbsp;<span
                         id="placeholder">___________________</span>. This report is established during design to capture
@@ -86,9 +82,9 @@
                     id="placeholder1">___________________</span>.
         </div>
         <div id="tab2" class="tab">
-            <h2>Component Overview</h2>
-            <table id="projectDataTable">
-                <thead>
+            <h3>Component Overview</h3>
+            <table class="table table-striped" id="projectDataTable">
+                <thead class="thead-light">
                 <tr>
                     <th>Component name</th>
                     <th>Component version</th>
@@ -102,9 +98,9 @@
             </table>
         </div>
         <div id="tab3" class="tab">
-            <h2>Analysis</h2>
-            <table id="projectDataTable1">
-                <thead>
+            <h3>Analysis</h3>
+            <table class="table table-striped" id="projectDataTable1">
+                <thead class="thead-light">
                 <tr>
                     <th>Review date (YYYY-MM-DD)</th>
                     <th>Component name</th>
@@ -127,7 +123,7 @@
             </table>
         </div>
         <div id="tab4" class="tab">
-            <h2>Document Revision History</h2>
+            <h3>Document Revision History</h3>
             <table class="table table-bordered" id="revisionHistoryTable">
                 <thead class="thead-light">
                 <tr>
@@ -145,7 +141,7 @@
             <button class="btn btn-primary" onclick="addRow('revisionHistoryTable', 5)">Add Row</button>
         </div>
         <div id="tab5" class="tab">
-            <h2>Terminology & Abbreviations</h2>
+            <h3>Terminology & Abbreviations</h3>
             <table class="table table-bordered" id="terminologyAbbreviationTable">
                 <thead class="thead-light">
                 <tr>
@@ -159,7 +155,7 @@
             <button class="btn btn-primary" onclick="addRow('terminologyAbbreviationTable', 2)">Add Row</button>
         </div>
         <div id="tab6" class="tab">
-            <h2>References</h2>
+            <h3>References</h3>
             <table class="table table-bordered" id="referencesTable">
                 <thead class="thead-light">
                 <tr>

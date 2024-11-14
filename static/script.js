@@ -61,6 +61,11 @@ function addRow(tableId, cellCount) {
         cell.contentEditable = "true";
         cell.className = "editable-cell";
         cell.textContent = ""; // Start with empty cells
+
+        // Prevent default behavior that might cause jumping
+        // cell.addEventListener('click', function(event) {
+        //     event.preventDefault();
+        // });
     }
 
     // Add delete button
@@ -277,11 +282,13 @@ function populateTable(data) {
 
 function generateExcelReport() {
     saveRevisionHistoryData();
-    saveTerminologyData();
-    saveReferenceData();
     let newData = document.getElementById('newData').value;
     let selectedProjectId = document.getElementById('projects').value;
     let tab1Content = document.getElementById('tab1').innerHTML;
+    // if (!newData.trim()) {
+    //     alert("Please enter the project name with version.");
+    //     return;
+    // }
 
     if (!selectedProjectId) {
         alert("Please select a project.");
@@ -398,61 +405,6 @@ function saveRevisionHistoryData() {
     .catch(error => {
         console.error('Error:', error);
     });
-}
-
-function saveTerminologyData() {
-    const table = document.getElementById('terminologyAbbreviationTable');
-    const rows = table.querySelectorAll('tbody tr');
-    const data = [];
-
-    rows.forEach(row => {
-        const cells = row.querySelectorAll('td');
-        const rowData = {
-            terminology: cells[0].innerText,
-            description: cells[1].innerText,
-        };
-        data.push(rowData);
-    });
-
-    fetch('/save_terminology_data', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({terminologyData: data})
-    })
-        .then(response => response.json())
-        .catch(error => {
-            console.error('Error:', error);
-        });
-}
-
-function saveReferenceData() {
-    const table = document.getElementById('referencesTable');
-    const rows = table.querySelectorAll('tbody tr');
-    const data = [];
-
-    rows.forEach(row => {
-        const cells = row.querySelectorAll('td');
-        const rowData = {
-            referenceNumber: cells[0].innerText,
-            documentTitle: cells[1].innerText,
-            documentId: cells[2].innerText,
-        };
-        data.push(rowData);
-    });
-
-    fetch('/save_reference_data', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({referenceData: data})
-    })
-        .then(response => response.json())
-        .catch(error => {
-            console.error('Error:', error);
-        });
 }
 
 

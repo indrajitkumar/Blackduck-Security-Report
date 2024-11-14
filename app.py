@@ -262,9 +262,13 @@ def terminology_sheet(workbook, writer):
     worksheet.write('A1', 'Terminology & Abbreviations',
                     workbook.add_format({'align': 'left', 'valign': 'vcenter', 'bold': True, 'font_size': 14}))
     header_format = workbook.add_format({'text_wrap': True, 'bold': True, 'align': 'left', 'valign': 'vcenter'})
+
     for col_num, col in enumerate(abbreviations_df.columns):
         worksheet.write(1, col_num, col, header_format)
-        worksheet.set_column(col_num, col_num, 30, workbook.add_format({'text_wrap': True}))
+        if col == 'Terminology & Abbreviations':
+            worksheet.set_column(col_num, col_num, 30, workbook.add_format({'text_wrap': True}))
+        else:
+            worksheet.set_column(col_num, col_num, 50, workbook.add_format({'text_wrap': True}))
     worksheet_formater(worksheet)
 
 

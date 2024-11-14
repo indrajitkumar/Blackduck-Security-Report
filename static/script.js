@@ -62,10 +62,6 @@ function addRow(tableId, cellCount) {
         cell.className = "editable-cell";
         cell.textContent = ""; // Start with empty cells
 
-        // Prevent default behavior that might cause jumping
-        // cell.addEventListener('click', function(event) {
-        //     event.preventDefault();
-        // });
     }
 
     // Add delete button
@@ -77,6 +73,40 @@ function addRow(tableId, cellCount) {
 function deleteRow(button) {
     const row = button.closest("tr");
     row.parentNode.removeChild(row);
+}
+
+function updateRowWithNewData(row) {
+    const searchString1 = "which are used in";
+    const searchString2 = "This report is established";
+    const index1 = row.indexOf(searchString1);
+    const index2 = row.indexOf(searchString2);
+
+    if (index1 !== -1 && index2 !== -1 && index1 < index2) {
+        const before = row.substring(0, index1 + searchString1.length);
+        const between = row.substring(index1 + searchString1.length, index2);
+        const after = row.substring(index2);
+        const newData = document.getElementById('newData').value;
+
+        document.getElementById('newData').placeholder = between;
+        document.getElementById('placeholder').textContent = between;
+        document.getElementById('placeholder1').textContent = between;
+
+        return before + `&nbsp;<span id="placeholder">${newData}</span>` +'.' + after;
+    }
+    return row;
+}
+
+function updateRowWithNewDataInScope(row) {
+    const searchString1 = "that are reported for";
+    const index1 = row.indexOf(searchString1);
+
+    if (index1 !== -1) {
+        const before = row.substring(0, index1 + searchString1.length);
+        const newData = document.getElementById('newData').value;
+
+        return before + `&nbsp;<span id="placeholder1">${newData}</span>` +'.';
+    }
+    return row;
 }
 
 function importExcelFile() {
@@ -93,13 +123,17 @@ function importExcelFile() {
         const jsonData_title_page = XLSX.utils.sheet_to_json(worksheet_title_page, {header: 1});
         console.log(jsonData_title_page);
         // Update tab1 (Title Page)
-        const tab1Content = jsonData_title_page.map((row, index) => {
+        document.getElementById('tab1').innerHTML = jsonData_title_page.map((row, index) => {
             if ((index === 0) || (index === 4)) {
                 return `<h2>${row.join(' ')}</h2>`;
             }
-            return `<p>${row.join(' ')}</p>`;
+            if (index === 5) {
+                return `<p>${updateRowWithNewDataInScope(row.join(' '), document.getElementById('newData').value)}</p>`;
+            }
+            console.log(row);
+                return `<p>${updateRowWithNewData(row.join(' '), document.getElementById('newData').value)}</p>`;
+
         }).join('');
-        document.getElementById('tab1').innerHTML = tab1Content;
 
 
         // Assuming the first sheet is the one we want to read
@@ -239,7 +273,6 @@ function populateTable(data) {
             let baseScore = document.createElement('td');
             let exploitability = document.createElement('td');
             let impact = document.createElement('td');
-            let remediationStatus = document.createElement('td');
             let remediationComment = document.createElement('textarea');
             let severityRating = document.createElement('td');
             let updatePSSD = document.createElement('td');
@@ -253,7 +286,6 @@ function populateTable(data) {
             baseScore.textContent = version.baseScore;
             exploitability.textContent = version.exploitabilitySubscore;
             impact.textContent = version.impactSubscore;
-            remediationStatus.value = version.remediationStatus;
             remediationComment.value = 'Please update in report';
             severityRating.textContent = version.severity;
             updatePSSD.textContent = "No";
@@ -269,7 +301,6 @@ function populateTable(data) {
             row.appendChild(baseScore);
             row.appendChild(exploitability);
             row.appendChild(impact);
-            row.appendChild(remediationStatus);
             row.appendChild(remediationComment);
             row.appendChild(severityRating);
             row.appendChild(updatePSSD);
@@ -282,13 +313,10 @@ function populateTable(data) {
 
 function generateExcelReport() {
     saveRevisionHistoryData();
-    let newData = document.getElementById('newData').value;
+    saveTerminologyData();
+    saveReferenceData();
     let selectedProjectId = document.getElementById('projects').value;
     let tab1Content = document.getElementById('tab1').innerHTML;
-    // if (!newData.trim()) {
-    //     alert("Please enter the project name with version.");
-    //     return;
-    // }
 
     if (!selectedProjectId) {
         alert("Please select a project.");
@@ -341,7 +369,7 @@ function generateExcelReport() {
 }
 
 function updatePlaceholder() {
-    let newData = document.getElementById('newData').value;
+    const newData = document.getElementById('newData').value;
     document.getElementById('placeholder').textContent = newData;
     document.getElementById('placeholder1').textContent = newData;
     // Send the newData value to the backend
@@ -401,36 +429,64 @@ function saveRevisionHistoryData() {
         },
         body: JSON.stringify({revisionData: data})
     })
-    .then(response => response.json())
-    .catch(error => {
-        console.error('Error:', error);
-    });
-}
-
-
-function saveRevisionData() {
-    // const formData = new FormData(document.getElementById('configurationForm'));
-    const termList = document.getElementById('revisionHistoryTable').children;
-    const terms = [];
-    for (let i = 0; i < termList.length; i++) {
-        terms.push(termList[i].textContent);
-    }
-    // formData.append('terms', JSON.stringify(terms));
-
-    fetch('/save_revision_data', {
-        method: 'POST',
-        body: formData
-    })
         .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                alert('Data saved successfully');
-            } else {
-                alert('Failed to save data');
-            }
-        })
         .catch(error => {
             console.error('Error:', error);
-            alert('An error occurred while saving data');
         });
 }
+
+function saveTerminologyData() {
+    const table = document.getElementById('terminologyAbbreviationTable');
+    const rows = table.querySelectorAll('tbody tr');
+    const data = [];
+
+    rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        const rowData = {
+            terminology: cells[0].innerText,
+            description: cells[1].innerText,
+        };
+        data.push(rowData);
+    });
+
+    fetch('/save_terminology_data', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({terminologyData: data})
+    })
+        .then(response => response.json())
+        .catch(error => {
+            console.error('Error:', error);
+        });
+}
+
+function saveReferenceData() {
+    const table = document.getElementById('referencesTable');
+    const rows = table.querySelectorAll('tbody tr');
+    const data = [];
+
+    rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        const rowData = {
+            referenceNumber: cells[0].innerText,
+            documentTitle: cells[1].innerText,
+            documentId: cells[2].innerText,
+        };
+        data.push(rowData);
+    });
+
+    fetch('/save_reference_data', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({referenceData: data})
+    })
+        .then(response => response.json())
+        .catch(error => {
+            console.error('Error:', error);
+        });
+}
+

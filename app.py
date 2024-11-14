@@ -233,7 +233,7 @@ def references_sheet(workbook, writer):
             'Document ID': data.get('documentId', '')
         })
 
-        references_df = pd.DataFrame(reference_data_list)
+    references_df = pd.DataFrame(reference_data_list)
     references_df.to_excel(writer, sheet_name='References', startrow=1, index=False)
     worksheet = writer.sheets['References']
     header_format = workbook.add_format({'text_wrap': True, 'bold': True, 'align': 'left', 'valign': 'vcenter'})
@@ -323,7 +323,6 @@ def analysis_sheet(component_overview, workbook, writer):
                 'Base score': version['baseScore'],
                 'Exploitability': version['exploitabilitySubscore'],
                 'Impact': version['impactSubscore'],
-                'Remediation status': version.get('remediationStatus', ''),
                 'Remediation comment': join_remediation_comment(item['componentName'], version['severity']),
                 'Severity rating': version['severity'],
                 'Update PSSD?': 'No',
@@ -354,9 +353,9 @@ def analysis_sheet(component_overview, workbook, writer):
 
 def join_remediation_comment(versionName, severity):
     releaseName = session.get('new_data', {})
-    a = f"a) Technical Impact on Production environment/Client: \n\n The OSS risks identified is {severity} risks and it is part of the base docker image. \n\n{versionName} component is not directly exposed to the internet and is not accessible by the end user. The component is used as a part of the application and is not directly accessible by the end user.\n\n\n"
-    b = "\n\n\nb) Why we are not addressing now: \n\nApplication is using the alpine base image from official docker registry. The component will be upgraded once the non-vulnerable image is available in docker hub in future release."
-    c = f"\n\n\nc) When we are addressing:\n\nPlan is to address this risk in the next release {releaseName}"
+    a = f"a) Technical Impact on Production environment/Client:"
+    b = "\n\n\nb) Why we are not addressing now:"
+    c = f"\n\n\nc) When we are addressing:\n\n"
 
     return a + b + c
 

@@ -77,7 +77,7 @@ function deleteRow(button) {
 
 function updateRowWithNewData(row) {
     const searchString1 = "which are used in";
-    const searchString2 = "This report is established";
+    const searchString2 = ". This report is established";
     const index1 = row.indexOf(searchString1);
     const index2 = row.indexOf(searchString2);
 
@@ -85,16 +85,17 @@ function updateRowWithNewData(row) {
         const before = row.substring(0, index1 + searchString1.length);
         const between = row.substring(index1 + searchString1.length, index2);
         const after = row.substring(index2);
-        const newData = document.getElementById('newData').value;
-
-        document.getElementById('newData').placeholder = between;
-        document.getElementById('placeholder').textContent = between;
-        document.getElementById('placeholder1').textContent = between;
-
-        return before + `&nbsp;<span id="placeholder">${newData}</span>` +'.' + after;
+        document.getElementById('newData').value = between;
+        return before + `&nbsp;<span id="placeholder">${document.getElementById('newData').value}</span>` + after;
     }
     return row;
 }
+
+document.getElementById('newData').addEventListener('input', function() {
+    const newData = this.value;
+    document.getElementById('placeholder').textContent = newData;
+    document.getElementById('placeholder1').textContent = newData;
+});
 
 function updateRowWithNewDataInScope(row) {
     const searchString1 = "that are reported for";

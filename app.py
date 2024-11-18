@@ -99,11 +99,13 @@ def get_version_components(versionIds, component_overview, seen_components):
             component_name = component.get('componentName', 'No name found')
             if component_name not in seen_components:
                 seen_components.add(component_name)
+                matched_files = component['_meta']['links'][4]['href'].replace('matched-files', '')
+                # print(matched_files)
                 component_overview.append({
                     'componentName': component_name,
                     'componentVersionName': component.get('componentVersionName', 'No name found'),
                     'componentDescription': get_component_details(component.get('component')),
-                    'componentVersion': get_component_version_details(component.get('componentVersion'))
+                    'componentVersion': get_component_version_details(matched_files)
                 })
         return component_overview
     else:
@@ -129,15 +131,15 @@ def get_component_details(param):
 
 
 def get_component_version_details(param):
-    vulnerabilities = '/vulnerabilities?limit=100&offset=0&sort=overallScore%20DESC'
+    vulnerabilities = 'vulnerabilities?limit=100&offset=0'
     bearer_token = session.get('bearerToken')
     if not bearer_token:
         flash("You need to authenticate first.")
         return redirect(url_for('home'))
     url = f"{param}{vulnerabilities}"
     headers = {
-        "Authorization": f"Bearer {bearer_token}",
-        "Accept": "application/json"
+        "Authorization": f"Bearer {bearer_token}"
+
     }
     vulnerabilities = []
     response = requests.get(url, headers=headers)
@@ -145,17 +147,15 @@ def get_component_version_details(param):
         component_version_details = response.json()
         if component_version_details.get('totalCount', 0) > 0:
             for component_version_details in component_version_details.get('items', []):
-                if component_version_details.get('severity', 'No severity found') in ['HIGH', 'MEDIUM']:
+                if component_version_details.get('remediationStatus', 'No severity found') in ['NEW']:
                     vulnerabilities.append({
-                        'vulnerabilityUpdatedDate': component_version_details.get('publishedDate', 'No date found'),
-                        'vulnerabilityName': component_version_details.get('name', 'No name found'),
-                        'description': component_version_details.get('description', 'No description found'),
-                        'baseScore': component_version_details.get('cvss3', {}).get('baseScore', 'No score found'),
-                        'impactSubscore': component_version_details.get('cvss3', {}).get('impactSubscore',
-                                                                                         'No score found'),
-                        'exploitabilitySubscore': component_version_details.get('cvss3', {}).get(
-                            'exploitabilitySubscore', 'No score found'),
-                        'severity': component_version_details.get('severity', 'No severity found')
+                        'vulnerabilityUpdatedDate': component_version_details.get('lastModified', 'No date found'),
+                        'vulnerabilityName': component_version_details.get('id', 'No name found'),
+                        'description': component_version_details.get('summary', 'No description found'),
+                        'baseScore': component_version_details.get('cvss3', {}).get('baseScore', '0'),
+                        'impactSubscore': component_version_details.get('cvss3', {}).get('impactSubscore', '0'),
+                        'exploitabilitySubscore': component_version_details.get('cvss3', {}).get('exploitabilitySubscore', '0'),
+                        'severity': component_version_details.get('cvss3', {}).get('severity', 'LOW')
                     })
         return vulnerabilities
     else:

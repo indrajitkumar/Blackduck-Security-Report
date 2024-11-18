@@ -413,6 +413,8 @@ def worksheet_formater(worksheet):
 
 @app.route('/save_revision_data', methods=['POST'])
 def save_revision_data():
+    # Clear the session before storing new data
+    session.pop('revision_data', None)
     revision_data = request.json.get('revisionData', [])
     # Save the data to a session or database (for simplicity, using session here)
     session['revision_data'] = revision_data
@@ -421,6 +423,8 @@ def save_revision_data():
 
 @app.route('/save_terminology_data', methods=['POST'])
 def save_terminology_data():
+    # Clear the session before storing new data
+    session.pop('terminology_data', None)
     terminology_data = request.json.get('terminologyData', [])
     # Save the data to a session or database (for simplicity, using session here)
     session['terminology_data'] = terminology_data
@@ -429,6 +433,8 @@ def save_terminology_data():
 
 @app.route('/save_reference_data', methods=['POST'])
 def save_reference_data():
+    # Clear the session before storing new data
+    session.pop('referenceData', None)
     referenceData = request.json.get('referenceData', [])
     # Save the data to a session or database (for simplicity, using session here)
     session['referenceData'] = referenceData

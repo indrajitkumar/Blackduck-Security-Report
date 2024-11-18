@@ -312,63 +312,64 @@ function populateTable(data) {
     });
 }
 
-function generateExcelReport() {
-    saveRevisionHistoryData();
-    saveTerminologyData();
-    saveReferenceData();
-    let selectedProjectId = document.getElementById('projects').value;
-    let tab1Content = document.getElementById('tab1').innerHTML;
+async function generateExcelReport() {
+    // Save data sequentially
+    try {
+        await saveRevisionHistoryData();
+        await saveTerminologyData();
+        await saveReferenceData();
 
-    if (!selectedProjectId) {
-        alert("Please select a project.");
-        return;
-    }
+        let selectedProjectId = document.getElementById('projects').value;
+        let tab1Content = document.getElementById('tab1').innerHTML;
 
-    if (!confirm("Are you sure you want to generate the Excel report?")) {
-        return; // Exit the function if the user cancels
-    }
-    let button = document.querySelector('button[onclick="generateExcelReport()"]');
-    let loader = document.getElementById('loader');
+        if (!selectedProjectId) {
+            alert("Please select a project.");
+            return;
+        }
 
-    button.classList.add('animate-click');
-    button.disabled = true;
-    loader.style.display = 'block';
+        if (!confirm("Are you sure you want to generate the Excel report?")) {
+            return; // Exit the function if the user cancels
+        }
 
-    fetch(`/generate_excel_report/${selectedProjectId}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({tab1Content: tab1Content})
-    })
-        .then(response => {
-            if (response.ok) {
-                return response.blob();
-            } else {
-                throw new Error('Failed to generate Excel report');
-            }
-        })
-        .then(blob => {
-            let url = window.URL.createObjectURL(blob);
-            let a = document.createElement('a');
-            a.href = url;
-            a.download = 'Product security vulnerability analysis report.xlsx';
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-        })
-        .catch(error => {
-            console.error('Error:', error);
-        })
-        .finally(() => {
-            setTimeout(() => {
-                button.classList.remove('animate-click');
-                button.disabled = false;
-                loader.style.display = 'none';
-            }, 300);
+        let button = document.querySelector('button[onclick="generateExcelReport()"]');
+        let loader = document.getElementById('loader');
+
+        button.classList.add('animate-click');
+        button.disabled = true;
+        loader.style.display = 'block';
+
+        const response = await fetch(`/generate_excel_report/${selectedProjectId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ tab1Content: tab1Content })
         });
-}
 
+        if (!response.ok) {
+            throw new Error('Failed to generate Excel report');
+        }
+
+        const blob = await response.blob();
+        let url = window.URL.createObjectURL(blob);
+        let a = document.createElement('a');
+        a.href = url;
+        a.download = 'Product security vulnerability analysis report.xlsx';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+    } catch (error) {
+        console.error('Error:', error);
+    } finally {
+        setTimeout(() => {
+            const button = document.querySelector('button[onclick="generateExcelReport()"]');
+            button.classList.remove('animate-click');
+            button.disabled = false;
+            const loader = document.getElementById('loader');
+            loader.style.display = 'none';
+        }, 300);
+    }
+}
 function updatePlaceholder() {
     const newData = document.getElementById('newData').value;
     document.getElementById('placeholder').textContent = newData;
@@ -406,6 +407,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
     });
 });
 
+// Update save methods to return promises for sequential execution
 function saveRevisionHistoryData() {
     const table = document.getElementById('revisionHistoryTable');
     const rows = table.querySelectorAll('tbody tr');
@@ -423,17 +425,13 @@ function saveRevisionHistoryData() {
         data.push(rowData);
     });
 
-    fetch('/save_revision_data', {
+    return fetch('/save_revision_data', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({revisionData: data})
-    })
-        .then(response => response.json())
-        .catch(error => {
-            console.error('Error:', error);
-        });
+        body: JSON.stringify({ revisionData: data })
+    }).then(response => response.json());
 }
 
 function saveTerminologyData() {
@@ -450,17 +448,13 @@ function saveTerminologyData() {
         data.push(rowData);
     });
 
-    fetch('/save_terminology_data', {
+    return fetch('/save_terminology_data', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({terminologyData: data})
-    })
-        .then(response => response.json())
-        .catch(error => {
-            console.error('Error:', error);
-        });
+        body: JSON.stringify({ terminologyData: data })
+    }).then(response => response.json());
 }
 
 function saveReferenceData() {
@@ -478,16 +472,11 @@ function saveReferenceData() {
         data.push(rowData);
     });
 
-    fetch('/save_reference_data', {
+    return fetch('/save_reference_data', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({referenceData: data})
-    })
-        .then(response => response.json())
-        .catch(error => {
-            console.error('Error:', error);
-        });
+        body: JSON.stringify({ referenceData: data })
+    }).then(response => response.json());
 }
-

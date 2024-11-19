@@ -367,7 +367,7 @@ async function generateExcelReport() {
             button.disabled = false;
             const loader = document.getElementById('loader');
             loader.style.display = 'none';
-        }, 300);
+        }, 30);
     }
 }
 function updatePlaceholder() {
@@ -479,4 +479,12 @@ function saveReferenceData() {
         },
         body: JSON.stringify({ referenceData: data })
     }).then(response => response.json());
+}
+
+function removeHiddenSpecialCharacters() {
+    const paragraphs = document.querySelectorAll('p');
+    paragraphs.forEach(paragraph => {
+        // Replace hidden special characters with an empty string
+        paragraph.innerHTML = paragraph.innerHTML.replace(/[\u200B-\u200D\uFEFF]/g, '');
+    });
 }

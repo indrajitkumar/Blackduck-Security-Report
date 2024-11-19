@@ -154,7 +154,8 @@ def get_component_version_details(param):
                         'description': component_version_details.get('summary', 'No description found'),
                         'baseScore': component_version_details.get('cvss3', {}).get('baseScore', '0'),
                         'impactSubscore': component_version_details.get('cvss3', {}).get('impactSubscore', '0'),
-                        'exploitabilitySubscore': component_version_details.get('cvss3', {}).get('exploitabilitySubscore', '0'),
+                        'exploitabilitySubscore': component_version_details.get('cvss3', {}).get(
+                            'exploitabilitySubscore', '0'),
                         'severity': component_version_details.get('cvss3', {}).get('severity', 'LOW')
                     })
         return vulnerabilities
@@ -241,7 +242,7 @@ def references_sheet(workbook, writer):
                     workbook.add_format({'align': 'left', 'valign': 'vcenter', 'bold': True, 'font_size': 14}))
     for col_num, col in enumerate(references_df.columns):
         worksheet.write(1, col_num, col, header_format)
-        worksheet.set_column(col_num, col_num, 30, workbook.add_format({'text_wrap': True}))
+        worksheet.set_column(col_num, col_num, 26, workbook.add_format({'text_wrap': True}))
 
     worksheet_formater(worksheet)
 
@@ -296,13 +297,16 @@ def revision_history_sheet(workbook, writer):
     for col_num, col in enumerate(revision_history_df.columns):
         worksheet.write(1, col_num, col, header_format)
         if col == 'Revision':
-            worksheet.set_column(col_num, col_num, 10,
+            worksheet.set_column(col_num, col_num, 8,
                                  workbook.add_format({'text_wrap': True, 'align': 'left', 'valign': 'top'}))
         elif col == 'Revision Date':
-            worksheet.set_column(col_num, col_num, 20,
+            worksheet.set_column(col_num, col_num, 8,
+                                 workbook.add_format({'text_wrap': True, 'align': 'left', 'valign': 'top'}))
+        elif col == 'Author':
+            worksheet.set_column(col_num, col_num, 10,
                                  workbook.add_format({'text_wrap': True, 'align': 'left', 'valign': 'top'}))
         else:
-            worksheet.set_column(col_num, col_num, 50,
+            worksheet.set_column(col_num, col_num, 26,
                                  workbook.add_format({'text_wrap': True, 'align': 'left', 'valign': 'top'}))
     worksheet_formater(worksheet)
 
@@ -340,14 +344,20 @@ def analysis_sheet(component_overview, workbook, writer):
     worksheet_formater(worksheet)
     for col_num, col in enumerate(analysis_df.columns):
         worksheet.write(1, col_num, col, header_format)
-        if col == 'Description' or col == 'Remediation comment':
-            worksheet.set_column(col_num, col_num, 80,
+        if col == 'Remediation comment':
+            worksheet.set_column(col_num, col_num, 50,
+                                 workbook.add_format({'text_wrap': True, 'align': 'left', 'valign': 'top'}))
+        elif col == 'Description':
+            worksheet.set_column(col_num, col_num, 40,
                                  workbook.add_format({'text_wrap': True, 'align': 'left', 'valign': 'top'}))
         elif col == 'Vulnerability ID (e.g. CVE)':
-            worksheet.set_column(col_num, col_num, 16,
+            worksheet.set_column(col_num, col_num, 15,
+                                 workbook.add_format({'text_wrap': True, 'align': 'left', 'valign': 'top'}))
+        elif col == 'Base score' or col == 'Exploitability' or col == 'Impact':
+            worksheet.set_column(col_num, col_num, 6,
                                  workbook.add_format({'text_wrap': True, 'align': 'left', 'valign': 'top'}))
         else:
-            worksheet.set_column(col_num, col_num, 12,
+            worksheet.set_column(col_num, col_num, 10,
                                  workbook.add_format({'text_wrap': True, 'align': 'left', 'valign': 'top'}))
 
 
@@ -374,13 +384,11 @@ def component_overview_sheet(component_overview, workbook, writer):
     worksheet = writer.sheets['Component Overview']
     for col_num, col in enumerate(component_overview_df.columns):
         if col == 'Component Description':
-            worksheet.set_column(col_num, col_num, 80, workbook.add_format({'text_wrap': True}))
+            worksheet.set_column(col_num, col_num, 36, workbook.add_format({'text_wrap': True, 'align': 'left', 'valign': 'top'}))
         elif col == 'Component Name':
-            worksheet.set_column(col_num, col_num, 20)
-        elif col == 'Support Status':
-            worksheet.set_column(col_num, col_num, 30, workbook.add_format({'text_wrap': True}))
+            worksheet.set_column(col_num, col_num, 16, workbook.add_format({'text_wrap': True, 'align': 'left', 'valign': 'top'}))
         else:
-            worksheet.set_column(col_num, col_num, 20)
+            worksheet.set_column(col_num, col_num, 16, workbook.add_format({'text_wrap': True, 'align': 'left', 'valign': 'top'}))
     worksheet_formater(worksheet)
 
 
@@ -397,18 +405,19 @@ def title_sheet(tab1_content, workbook, writer):
     for col_num, col in enumerate(title_page_df.columns):
         worksheet.set_column(col_num + 1, col_num, 120, workbook.add_format({'text_wrap': True}))
 
-        # Apply bold format to the first and third rows
+    # Apply bold format to the first and third rows
     worksheet.set_row(0, None, header_format)
-    worksheet.set_row(2, None, header_format)
+    worksheet.set_row(4, None, header_format)
     worksheet_formater(worksheet)
 
 
 def worksheet_formater(worksheet):
-    worksheet.set_header('&CProduct security vulnerability analysis report for HSCS')
+    worksheet.set_header('&C&20Product security vulnerability analysis report')
     worksheet.set_footer(
         '&CNote: for template information, see custom properties of this document. &RFor Internal Use Only')
-    worksheet.set_paper(9)
+    worksheet.set_paper(9)  # Set paper type. US Letter = 1, A4 = 9.
     worksheet.fit_to_pages(1, 0)
+    worksheet.set_portrait()
 
 
 @app.route('/save_revision_data', methods=['POST'])
